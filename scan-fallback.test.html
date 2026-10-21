@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>扫码降级逻辑测试</title>
+<style>
+  body{font:13px/1.7 ui-monospace,Consolas,monospace;padding:20px;background:#faf7f0;color:#233}
+  h1{font-size:16px;margin:0 0 12px}
+  pre{white-space:pre-wrap;background:#fff;border:1px solid #ddd4c4;border-radius:8px;padding:14px}
+  .pass{color:#1c6b45}.fail{color:#a33226}
+  iframe{position:fixed;left:-3000px;top:0;width:1200px;height:900px;border:0}
+</style>
+</head>
+<body>
+<h1>扫码降级逻辑测试</h1>
+<p style="margin:0 0 12px;color:#6b6459;font-size:12px">需通过本地静态服务器打开（与 family-library.html 同目录），file:// 下浏览器会阻止 iframe 同源访问。</p>
+<pre id="results">RUNNING…</pre>
+<iframe id="app"></iframe>
+<script>
+const frame = document.getElementById('app');
+const results = document.getElementById('results');
+const lines = [];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function report(name, ok, detail) {
+  lines.push({ name, ok, detail });
+  results.innerHTML = lines.map((l) =>
+    `<span class="${l.ok ? 'pass' : 'fail'}">${l.ok ? 'PASS' : 'FAIL'}</span> | ${l.name}${l.detail ? ' | ' + l.detail : ''}`
+  ).join('\n');
+  document.title = lines.some((l) => !l.ok) ? 'HAS_FAILURES' : (lines.length >= 8 ? 'ALL_DONE' : 'RUNNING');
+}
+
+function loadApp(tag) {
+  return new Promise((resolve) => {
+    const onload = () => { frame.removeEventListener('load', onload); setTimeout(resolve, 180); };
+    frame.addEventListener('load', onload);
+    frame.src = 'family-library.html?scan-test=' + tag;
+  });
+}
+
+async function setup(tag) {
+  await loadApp(tag);
+  const w = frame.contentWindow;
+  const d = frame.contentDocument;
+  d.querySelector('[data-action="add-book"]').click();
+  await sleep(120);
+  return { w, d };
+}
+
+function click(d, selector) {
+  const el = d.querySelector(selector);
+  if (!el) throw new Error('缺少元素 ' + selector);
+  el.click();
+}
+
+function text(d, selector) {
+  const el = d.querySelector(selector);
+  return el ? el.textContent.replace(/\s+/g, ' ').trim() : '';
+}
+
+function mockDetector(w) {
+  w.BarcodeDetector = class {
+    static getSupportedFormats() { return Promise.resolve(['ean_13']); }
+    constructor(options) { this.options = options; }
+    detect() { return Promise.resolve([]); }
+  };
+}
+
+async function run() {
+  // 1. 浏览器不支持 BarcodeDetector
+  {
+    const { d } = await setup('unsupported');
+    click(d, '#scanBtn');
+    await sleep(250);
+    const open = d.getElementById('scanModal').classList.contains('open');
+    const placeholder = text(d, '#scanPlaceholder span');
+    const fallbackVisible = !d.getElementById('scanFallbackBtn').hidden;
+    const focused = d.activeElement && d.activeElement.id === 'scanManualIsbn';
+    const status = text(d, '#scanStatus');
+    report('不支持自动识码时展示手动入口', open && placeholder.includes('不支持') && fallbackVisible && focused && status.includes('手动输入'),
+      `placeholder=${placeholder} 按钮可见=${fallbackVisible} 焦点=${focused}`);
+  }
+
+  // 2. 缺少 mediaDevices
+  {
+    const { w, d } = await setup('no-media');
+    mockDetector(w);
+    Object.defineProperty(w.navigator, 'mediaDevices', { value: undefined, configurable: true });
+    click(d, '#scanBtn');
+    await sleep(250);
+    const placeholder = text(d, '#scanPlaceholder span');
+    const focused = d.activeElement && d.activeElement.id === 'scanManualIsbn';
+    report('无法调用摄像头时自动降级', placeholder.includes('无法访问摄像头') && focused,
+      `placeholder=${placeholder} 焦点=${focused}`);
+  }
+
+  // 3. 用户拒绝摄像头权限
+  {
+    const { w, d } = await setup('denied');
+    mockDetector(w);
+    Object.defineProperty(w.navigator.mediaDevices, 'getUserMedia', {
+      value: () => Promise.reject(Object.assign(new Error('Permission denied'), { name: 'NotAllowedError' })),
+      configurable: true
+    });
+    click(d, '#scanBtn');
+    await sleep(500);
+    const placeholder = text(d, '#scanPlaceholder span');
+    const status = text(d, '#scanStatus');
+    const focused = d.activeElement && d.activeElement.id === 'scanManualIsbn';
+    const fallbackVisible = !d.getElementById('scanFallbackBtn').hidden;
+    report('摄像头权限被拒绝时自动降级', placeholder.includes('摄像头不可用') && status.includes('手动输入') && focused && fallbackVisible,
+      `placeholder=${placeholder} 焦点=${focused}`);
+  }
+
+  // 4. 等待授权期间切到手动输入，迟到的媒体流必须被丢弃
+  {
+    const { w, d } = await setup('pending');
+    mockDetector(w);
+    let resolveStream;
+    let stops = 0;
+    const fakeStream = { getTracks: () => [{ stop: () => { stops += 1; } }] };
+    Object.defineProperty(w.navigator.mediaDevices, 'getUserMedia', {
+      value: () => new Promise((resolve) => { resolveStream = resolve; }),
+      configurable: true
+    });
+    click(d, '#scanBtn');
+    await sleep(120);
+    click(d, '#scanFallbackBtn');
+    await sleep(120);
+    resolveStream(fakeStream);
+    await sleep(250);
+    const placeholder = text(d, '#scanPlaceholder span');
+    const status = text(d, '#scanStatus');
+    const videoActive = d.getElementById('scanVideo').classList.contains('active');
+    report('切手动后丢弃迟到的摄像头流', stops === 1 && !videoActive && placeholder.includes('已切换') && status.includes('ISBN'),
+      `停止轨道=${stops} videoActive=${videoActive} placeholder=${placeholder}`);
+  }
+
+  // 5. 手动入口的交互状态
+  {
+    const { d } = await setup('manual-ui');
+    click(d, '#scanBtn');
+    await sleep(250);
+    click(d, '#scanFallbackBtn');
+    await sleep(250);
+    const fallbackHidden = d.getElementById('scanFallbackBtn').hidden;
+    const focused = d.activeElement && d.activeElement.id === 'scanManualIsbn';
+    const status = text(d, '#scanStatus');
+    report('手动入口收起按钮并聚焦输入框', fallbackHidden && focused && status.includes('10 位或 13 位'),
+      `按钮隐藏=${fallbackHidden} 焦点=${focused}`);
+  }
+
+  // 6. 无效 ISBN 不关闭弹窗
+  {
+    const { d } = await setup('invalid');
+    click(d, '#scanBtn');
+    await sleep(250);
+    const input = d.getElementById('scanManualIsbn');
+    input.value = '123';
+    click(d, '#scanManualBtn');
+    await sleep(150);
+    const stillOpen = d.getElementById('scanModal').classList.contains('open');
+    const status = text(d, '#scanStatus');
+    const focused = d.activeElement && d.activeElement.id === 'scanManualIsbn';
+    report('无效 ISBN 提示且保留扫码弹窗', stillOpen && status.includes('有效') && focused,
+      `弹窗打开=${stillOpen} 提示=${status}`);
+  }
+
+  // 7. 有效 ISBN 回填表单
+  {
+    const { d } = await setup('valid');
+    click(d, '#scanBtn');
+    await sleep(250);
+    d.getElementById('scanManualIsbn').value = '9787020042494';
+    click(d, '#scanManualBtn');
+    await sleep(450);
+    const scanClosed = !d.getElementById('scanModal').classList.contains('open');
+    const bookOpen = d.getElementById('bookModal').classList.contains('open');
+    const isbn = d.getElementById('bookIsbn').value;
+    report('有效 ISBN 回填并关闭扫码弹窗', scanClosed && bookOpen && isbn === '9787020042494',
+      `扫码关闭=${scanClosed} 表单打开=${bookOpen} ISBN=${isbn}`);
+  }
+
+  // 8. 再次打开扫码时恢复降级入口
+  {
+    const { d } = await setup('reopen');
+    click(d, '#scanBtn');
+    await sleep(250);
+    click(d, '#scanFallbackBtn');
+    await sleep(200);
+    click(d, '[data-close="scanModal"]');
+    await sleep(150);
+    d.querySelector('[data-action="add-book"]').click();
+    await sleep(120);
+    click(d, '#scanBtn');
+    await sleep(250);
+    const fallbackVisible = !d.getElementById('scanFallbackBtn').hidden;
+    const placeholder = text(d, '#scanPlaceholder span');
+    const inputEmpty = d.getElementById('scanManualIsbn').value === '';
+    report('重新打开扫码时重置降级入口', fallbackVisible && inputEmpty && !placeholder.includes('已切换'),
+      `按钮可见=${fallbackVisible} 输入框为空=${inputEmpty} placeholder=${placeholder}`);
+  }
+
+  document.title = lines.some((l) => !l.ok) ? 'HAS_FAILURES' : 'ALL_DONE';
+}
+
+run().catch((error) => {
+  report('测试执行异常', false, String(error && error.stack ? error.stack.split('\n')[0] : error));
+  document.title = 'HAS_FAILURES';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+node_modules/
+*.log
+*.tmp
+.trae-html-share-packages/
+/trae/
+*.pid
+.DS_Store
