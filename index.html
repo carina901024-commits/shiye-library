@@ -1,12 +1,3611 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f0e8">
+<meta name="description" content="拾页 · 家庭图书管理工作台，离线可用的家庭藏书管理原型。">
 <title>拾页 · 家庭图书管理工作台</title>
-<meta http-equiv="refresh" content="0; url=family-library.html">
-<link rel="canonical" href="family-library.html">
+<style>
+  :root{
+    --bg:#f3f0e8;
+    --bg-deep:#ebe6da;
+    --surface:#fffdf8;
+    --surface-soft:#f8f5ed;
+    --surface-muted:#efe9dd;
+    --ink:#1c2a23;
+    --ink-soft:#3b4a41;
+    --muted:#728078;
+    --muted-2:#9aa39c;
+    --line:#e1dacd;
+    --line-strong:#d3cabb;
+    --green:#23483a;
+    --green-deep:#19382d;
+    --green-soft:#e4ece5;
+    --green-mid:#4a6d5b;
+    --accent:#bf6848;
+    --accent-deep:#9f4e32;
+    --accent-soft:#f7e8df;
+    --danger:#a74438;
+    --danger-soft:#f8e7e4;
+    --shadow-sm:0 2px 8px rgba(39,48,40,.06);
+    --shadow:0 14px 34px rgba(39,48,40,.09), 0 2px 6px rgba(39,48,40,.04);
+    --shadow-lg:0 28px 70px rgba(24,34,28,.18);
+    --radius:18px;
+    --radius-sm:12px;
+    --serif:"Iowan Old Style","Palatino Linotype","Songti SC","Noto Serif CJK SC","SimSun",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --mono:"SFMono-Regular","Cascadia Code","Consolas","Liberation Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    margin:0;min-width:320px;background:
+      radial-gradient(circle at 12% 0%,rgba(255,255,255,.72),transparent 32rem),
+      radial-gradient(circle at 100% 72%,rgba(218,208,190,.35),transparent 38rem),
+      var(--bg);
+    color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  body.no-scroll{overflow:hidden}
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer}
+  button:disabled{cursor:not-allowed;opacity:.55}
+  a{color:inherit}
+  img{max-width:100%;display:block}
+  [hidden]{display:none !important}
+  ::selection{background:rgba(191,104,72,.2)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .icon{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .icon-sm{width:15px;height:15px}
+  .icon-lg{width:24px;height:24px}
+  .svg-sprite{position:absolute;width:0;height:0;overflow:hidden}
+
+  /* ---------- App shell ---------- */
+  .app-shell{min-height:100vh;margin-left:264px}
+  .main{width:100%;max-width:1400px;margin:0 auto;padding:42px 48px 80px}
+  .view{display:none;animation:viewIn .28s ease both}
+  .view.active{display:block}
+  @keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    position:fixed;inset:0 auto 0 0;width:264px;height:100dvh;z-index:80;
+    display:flex;flex-direction:column;padding:28px 20px 22px;
+    color:#eef1e7;background:
+      radial-gradient(circle at 20% 0%,rgba(114,154,128,.2),transparent 18rem),
+      linear-gradient(165deg,#234035 0%,#1a3128 48%,#15271f 100%);
+    border-right:1px solid rgba(255,255,255,.05);
+  }
+  .sidebar::after{
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;
+    background-image:radial-gradient(rgba(255,255,255,.55) .55px,transparent .55px);
+    background-size:5px 5px;mask-image:linear-gradient(to bottom,black,transparent 68%);
+  }
+  .brand,.sidebar-nav,.sidebar-stats,.side-storage,.sidebar-foot{position:relative;z-index:1}
+  .brand{
+    display:flex;align-items:center;gap:12px;padding:2px 6px 26px;border:0;background:none;
+    text-align:left;color:inherit;border-radius:12px;
+  }
+  .brand-mark{
+    width:42px;height:42px;border-radius:13px;background:#f4efe3;color:#1e3a2e;
+    display:grid;place-items:center;flex:none;box-shadow:0 8px 20px rgba(0,0,0,.18);
+  }
+  .brand-mark .icon{width:23px;height:23px;stroke-width:1.6}
+  .brand-name{font-family:var(--serif);font-size:25px;line-height:1.05;letter-spacing:.08em;font-weight:600}
+  .brand-sub{font-size:10px;letter-spacing:.16em;color:rgba(238,241,231,.52);margin-top:6px;white-space:nowrap}
+  .nav-label{font-size:9px;letter-spacing:.2em;color:rgba(238,241,231,.34);padding:0 10px;margin:3px 0 9px;font-weight:600}
+  .sidebar-nav{display:flex;flex-direction:column;gap:3px}
+  .nav-item{
+    display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:0 12px;
+    border:0;border-radius:12px;background:transparent;color:rgba(238,241,231,.64);
+    font-size:13.5px;text-align:left;transition:background .16s,color .16s,transform .16s;
+  }
+  .nav-item:hover{background:rgba(255,255,255,.065);color:#fff}
+  .nav-item.active{background:rgba(255,255,255,.1);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.055)}
+  .nav-item.active .nav-indicator{opacity:1;transform:scale(1)}
+  .nav-item .icon{opacity:.88}
+  .nav-indicator{
+    width:5px;height:5px;border-radius:50%;background:#ddb69c;margin-left:auto;
+    opacity:0;transform:scale(.4);transition:.18s;
+  }
+  .sidebar-stats{
+    display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:28px 4px 0;
+    border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;
+    background:rgba(255,255,255,.075);
+  }
+  .sidebar-stat{padding:14px 14px 13px;background:rgba(10,24,18,.18)}
+  .sidebar-stat strong{display:block;font-family:var(--serif);font-size:24px;font-weight:500;line-height:1.1;color:#fff}
+  .sidebar-stat span{display:block;margin-top:4px;font-size:10px;color:rgba(238,241,231,.48);letter-spacing:.06em}
+  .side-storage{margin:24px 8px 0;padding-top:20px;border-top:1px solid rgba(255,255,255,.09)}
+  .side-storage-row{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:rgba(238,241,231,.49);margin-bottom:9px}
+  .side-storage-row strong{font-weight:500;color:rgba(238,241,231,.76)}
+  .mini-bar{height:4px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+  .mini-bar span{display:block;height:100%;width:2%;border-radius:99px;background:linear-gradient(90deg,#c7a17e,#e5c9ae);transition:width .4s}
+  .side-storage p{font-size:9.5px;line-height:1.5;color:rgba(238,241,231,.32);margin:9px 0 0}
+  .sidebar-foot{margin-top:auto;padding:26px 9px 0;display:flex;align-items:center;gap:7px;font-size:9.5px;letter-spacing:.05em;color:rgba(238,241,231,.31)}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:#8fb79b;box-shadow:0 0 0 3px rgba(143,183,155,.1)}
+
+  /* ---------- Mobile chrome ---------- */
+  .mobile-header{display:none}
+  .mobile-nav{display:none}
+
+  /* ---------- Page header ---------- */
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:26px}
+  .eyebrow{
+    display:flex;align-items:center;gap:8px;margin:0 0 9px;font-size:9.5px;font-weight:650;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+  }
+  .eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(191,104,72,.09)}
+  .page-title{
+    margin:0;font-family:var(--serif);font-size:42px;line-height:1.08;font-weight:500;
+    letter-spacing:.01em;color:var(--ink);
+  }
+  .page-desc{margin:9px 0 0;color:var(--muted);font-size:13.5px;letter-spacing:.01em}
+  .head-actions{display:flex;align-items:center;gap:10px;flex:none}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:0 16px;
+    border:1px solid transparent;border-radius:11px;background:transparent;font-size:13px;font-weight:600;
+    line-height:1;text-decoration:none;white-space:nowrap;transition:transform .15s,background .15s,border-color .15s,box-shadow .15s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--green);color:#fff;box-shadow:0 7px 18px rgba(35,72,58,.19)}
+  .btn-primary:hover{background:var(--green-deep);box-shadow:0 9px 22px rgba(35,72,58,.24)}
+  .btn-accent{background:var(--accent);color:#fff;box-shadow:0 7px 18px rgba(191,104,72,.19)}
+  .btn-accent:hover{background:var(--accent-deep)}
+  .btn-ghost{color:var(--ink-soft);border-color:var(--line)}
+  .btn-ghost:hover{background:rgba(255,255,255,.6);border-color:var(--line-strong)}
+  .btn-soft{background:var(--surface-soft);border-color:var(--line);color:var(--ink-soft)}
+  .btn-soft:hover{background:var(--surface-muted)}
+  .btn-dark{background:var(--ink);color:#fff}
+  .btn-dark:hover{background:#102019}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-danger:hover{background:#8e382f}
+  .btn-danger-soft{background:var(--danger-soft);color:var(--danger);border-color:#eed3ce}
+  .btn-sm{min-height:34px;padding:0 12px;border-radius:9px;font-size:12px}
+  .btn-block{width:100%}
+  .icon-btn{
+    width:36px;height:36px;min-height:36px;padding:0;border:1px solid transparent;border-radius:10px;
+    display:inline-grid;place-items:center;background:transparent;color:var(--muted);
+    transition:background .15s,color .15s,border-color .15s;
+  }
+  .icon-btn:hover{background:var(--surface-soft);border-color:var(--line);color:var(--ink)}
+  .icon-btn.danger:hover{background:var(--danger-soft);border-color:#efd5d0;color:var(--danger)}
+
+  /* ---------- Library summary ---------- */
+  .summary-strip{
+    display:flex;align-items:center;gap:0;margin:0 0 24px;padding:18px 4px 19px;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  }
+  .summary-item{display:flex;align-items:baseline;gap:8px;padding:0 26px;border-right:1px solid var(--line)}
+  .summary-item:first-child{padding-left:2px}
+  .summary-item:last-of-type{border-right:0}
+  .summary-num{font-family:var(--serif);font-size:27px;line-height:1;color:var(--green);font-weight:500}
+  .summary-label{font-size:11.5px;color:var(--muted);letter-spacing:.03em}
+  .summary-live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--muted-2);white-space:nowrap}
+  .summary-live .live-dot{background:var(--green-mid);box-shadow:0 0 0 3px rgba(74,109,91,.1)}
+
+  /* ---------- Toolbar ---------- */
+  .library-toolbar{
+    position:sticky;top:16px;z-index:30;display:flex;align-items:center;gap:10px;
+    padding:12px;background:rgba(255,253,248,.92);border:1px solid var(--line);
+    border-radius:18px;box-shadow:var(--shadow-sm);backdrop-filter:blur(16px);
+    margin-bottom:14px;
+  }
+  .search-field{
+    display:flex;align-items:center;gap:10px;flex:1;min-width:0;height:46px;padding:0 8px 0 14px;
+    background:#f7f4ec;border:1px solid transparent;border-radius:12px;color:var(--muted);
+    transition:border-color .16s,background .16s,box-shadow .16s;
+  }
+  .search-field:focus-within{background:#fff;border-color:#b9c9bd;box-shadow:0 0 0 3px rgba(35,72,58,.07);color:var(--green)}
+  .search-field .icon{width:19px;height:19px}
+  .search-field input{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:13.5px}
+  .search-field input::placeholder{color:var(--muted-2)}
+  .clear-search{
+    width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--muted);
+    display:grid;place-items:center;flex:none;
+  }
+  .clear-search:hover{background:#ece7dc;color:var(--ink)}
+  .toolbar-filters{display:flex;gap:8px;flex:none}
+  .select-wrap{position:relative;display:flex;align-items:center;height:46px;background:#f7f4ec;border:1px solid transparent;border-radius:12px;transition:border-color .16s,background .16s}
+  .select-wrap:focus-within{border-color:#b9c9bd;background:#fff}
+  .select-wrap>.icon{position:absolute;left:12px;width:16px;height:16px;color:var(--muted);pointer-events:none}
+  .select-wrap select{
+    height:100%;min-width:132px;max-width:168px;padding:0 30px 0 36px;border:0;outline:0;
+    background:transparent;color:var(--ink-soft);font-size:12.5px;font-weight:550;cursor:pointer;
+    appearance:none;-webkit-appearance:none;text-overflow:ellipsis;
+  }
+  .select-wrap .chevron{left:auto;right:10px;width:13px;height:13px;pointer-events:none}
+  .select-wrap.sort select{min-width:120px;padding-left:14px}
+  .results-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;padding:0 3px;margin-bottom:14px}
+  .results-text{margin:0;color:var(--muted);font-size:11.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .results-text strong{color:var(--ink-soft);font-weight:650}
+  .filter-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:var(--green-soft);border-radius:99px;color:var(--green);font-size:10.5px}
+  .reset-filters{border:0;background:none;color:var(--accent);font-size:11px;font-weight:600;padding:4px 6px;border-radius:6px}
+  .reset-filters:hover{background:var(--accent-soft)}
+
+  /* ---------- Book grid ---------- */
+  .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(154px,1fr));gap:30px 22px;align-items:start}
+  .book-card{min-width:0;cursor:pointer;border-radius:8px 14px 14px 8px;outline:none;content-visibility:auto;contain-intrinsic-size:auto 220px 380px}
+  .book-cover{
+    position:relative;aspect-ratio:2/3;border-radius:5px 13px 13px 5px;overflow:hidden;
+    background:#dfd8cb;box-shadow:0 12px 24px rgba(41,48,39,.15),0 2px 4px rgba(41,48,39,.09);
+    transform:translateZ(0);transition:transform .24s cubic-bezier(.2,.8,.2,1),box-shadow .24s;
+  }
+  .book-cover::before{
+    content:"";position:absolute;inset:0 auto 0 0;width:9px;z-index:4;pointer-events:none;
+    background:linear-gradient(90deg,rgba(0,0,0,.22),rgba(255,255,255,.14) 52%,rgba(0,0,0,.06));
+    mix-blend-mode:multiply;opacity:.55;
+  }
+  .book-cover::after{
+    content:"";position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;
+    box-shadow:inset 1px 0 rgba(255,255,255,.24),inset 0 1px rgba(255,255,255,.18),inset -1px 0 rgba(0,0,0,.09);
+    background:linear-gradient(120deg,rgba(255,255,255,.14),transparent 24%,transparent 76%,rgba(0,0,0,.06));
+  }
+  .book-card:hover .book-cover,.book-card:focus-visible .book-cover{
+    transform:translateY(-5px) rotate(-.35deg);
+    box-shadow:0 20px 34px rgba(41,48,39,.2),0 3px 6px rgba(41,48,39,.1);
+  }
+  .cover-art{
+    position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;justify-content:space-between;
+    padding:19px 15px 14px 21px;overflow:hidden;
+    background:
+      linear-gradient(160deg,rgba(255,255,255,.16),transparent 42%),
+      linear-gradient(150deg,hsl(var(--cover-h) 30% 37%),hsl(calc(var(--cover-h) + 25) 32% 20%));
+    color:rgba(255,251,240,.94);
+  }
+  .cover-art::before{
+    content:"";position:absolute;inset:9px 8px 9px 13px;border:1px solid rgba(255,255,255,.18);
+    border-radius:2px 8px 8px 2px;pointer-events:none;
+  }
+  .cover-art::after{
+    content:"";position:absolute;width:92px;height:92px;right:-38px;top:-38px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.13);box-shadow:0 0 0 18px rgba(255,255,255,.035);
+  }
+  .cover-mark{position:relative;font-size:7.5px;letter-spacing:.19em;color:rgba(255,251,240,.55);font-weight:600}
+  .cover-art-title{
+    position:relative;font-family:var(--serif);font-size:clamp(15px,1.35vw,20px);line-height:1.35;
+    font-weight:600;letter-spacing:.03em;word-break:break-word;display:-webkit-box;
+    -webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;
+    text-shadow:0 1px 2px rgba(0,0,0,.1);
+  }
+  .cover-art-author{position:relative;margin-top:9px;font-size:8.5px;line-height:1.4;letter-spacing:.04em;color:rgba(255,251,240,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cover-img{
+    position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:cover;opacity:0;
+    transition:opacity .28s ease;
+  }
+  .cover-img.loaded{opacity:1}
+  .book-info{padding:13px 3px 0}
+  .book-title{
+    margin:0;font-size:14px;line-height:1.45;font-weight:650;color:var(--ink);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;
+  }
+  .book-author{margin:5px 0 0;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .book-foot{display:flex;align-items:center;gap:8px;margin-top:9px;min-width:0}
+  .book-loc{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:72%;padding:3px 7px 3px 6px;background:var(--green-soft);color:var(--green);border-radius:6px;font-size:9.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .book-loc .icon{width:10px;height:10px;stroke-width:2}
+  .book-isbn{margin-left:auto;font-family:var(--mono);font-size:8.5px;color:var(--muted-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  mark{background:#f3ddc6;color:inherit;padding:0 1px;border-radius:2px}
+
+  /* ---------- Empty states ---------- */
+  .empty-state{
+    padding:70px 24px 76px;border:1px dashed var(--line-strong);border-radius:22px;
+    background:rgba(255,253,248,.55);text-align:center;
+  }
+  .empty-art{width:150px;height:130px;margin:0 auto 18px;color:var(--green);opacity:.9}
+  .empty-art svg{width:100%;height:100%;overflow:visible}
+  .empty-state h2{margin:0;font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:.02em}
+  .empty-state p{margin:9px auto 0;max-width:390px;color:var(--muted);font-size:12.5px;line-height:1.75}
+  .empty-actions{display:flex;justify-content:center;gap:9px;margin-top:22px;flex-wrap:wrap}
+  .empty-search-art{width:86px;height:86px;border-radius:50%;background:var(--surface-soft);display:grid;place-items:center;margin:0 auto 16px;color:var(--muted)}
+  .empty-search-art .icon{width:34px;height:34px;stroke-width:1.4}
+
+  /* ---------- Locations ---------- */
+  .location-intro{
+    display:flex;align-items:center;gap:12px;padding:14px 17px;margin:0 0 22px;
+    background:linear-gradient(90deg,var(--green-soft),rgba(228,236,229,.2));
+    border:1px solid #d8e4da;border-radius:13px;color:var(--green-mid);font-size:11.5px;line-height:1.65;
+  }
+  .location-intro .icon{width:19px;height:19px;flex:none;color:var(--green)}
+  .shelf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(318px,1fr));gap:18px;align-items:start}
+  .shelf-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow-sm);overflow:hidden;
+  }
+  .shelf-head{display:flex;align-items:flex-start;gap:13px;padding:20px 20px 16px;border-bottom:1px solid var(--line)}
+  .shelf-mark{
+    width:40px;height:44px;flex:none;border-radius:8px 8px 6px 6px;display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--green-soft),#d4e1d6);color:var(--green);border:1px solid #d4e0d6;
+    box-shadow:inset 0 -4px rgba(35,72,58,.05);
+  }
+  .shelf-mark .icon{width:20px;height:20px}
+  .shelf-title-wrap{min-width:0;flex:1}
+  .shelf-title{margin:1px 0 0;font-family:var(--serif);font-size:20px;line-height:1.3;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .shelf-sub{margin:4px 0 0;color:var(--muted);font-size:10.5px;letter-spacing:.02em}
+  .shelf-actions{display:flex;gap:1px;flex:none;margin-top:-3px;margin-right:-5px}
+  .levels{padding:8px 10px}
+  .level-row{
+    display:flex;align-items:center;gap:10px;min-height:49px;padding:8px 9px 8px 12px;border-radius:10px;
+    transition:background .15s;
+  }
+  .level-row:hover{background:var(--surface-soft)}
+  .level-line{width:3px;height:20px;border-radius:99px;background:var(--surface-muted);flex:none}
+  .level-row:hover .level-line{background:#c9b79c}
+  .level-main{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+  .level-name{font-size:12.5px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .level-count{
+    display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:19px;padding:0 6px;
+    border-radius:99px;background:var(--surface-soft);border:1px solid var(--line);color:var(--muted);
+    font-size:9px;font-family:var(--mono);flex:none;
+  }
+  .level-actions{display:flex;gap:0;opacity:.35;transition:opacity .15s;flex:none}
+  .level-row:hover .level-actions,.level-actions:focus-within{opacity:1}
+  .level-actions .icon-btn{width:30px;height:30px;min-height:30px;border-radius:8px}
+  .level-actions .icon{width:14px;height:14px}
+  .add-level-row{
+    width:100%;min-height:42px;margin-top:2px;border:1px dashed var(--line);border-radius:10px;
+    background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px;
+    font-size:10.5px;transition:.15s;
+  }
+  .add-level-row:hover{border-color:#b9c9bd;background:var(--surface-soft);color:var(--green)}
+  .add-level-row .icon{width:13px;height:13px}
+  .shelf-foot{padding:2px 20px 16px;display:flex;align-items:center;gap:6px;color:var(--muted-2);font-size:9.5px}
+  .empty-locations{grid-column:1/-1}
+
+  /* ---------- Data view ---------- */
+  .data-grid{display:grid;grid-template-columns:1.04fr .96fr;gap:18px;align-items:start}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow-sm)}
+  .storage-panel{padding:24px 24px 22px}
+  .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}
+  .panel-title{margin:0;font-size:14px;font-weight:650;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+  .panel-title .icon{width:17px;height:17px;color:var(--green-mid)}
+  .panel-desc{margin:5px 0 0;font-size:10.5px;color:var(--muted)}
+  .storage-total{display:flex;align-items:baseline;gap:7px;margin:2px 0 12px}
+  .storage-total strong{font-family:var(--serif);font-size:38px;font-weight:500;line-height:1;color:var(--green)}
+  .storage-total span{font-size:10.5px;color:var(--muted)}
+  .storage-bar{height:8px;border-radius:99px;background:var(--surface-muted);overflow:hidden;position:relative}
+  .storage-bar span{display:block;height:100%;width:2%;min-width:2px;border-radius:99px;background:linear-gradient(90deg,var(--green-mid),#87a98f);transition:width .45s ease}
+  .storage-scale{display:flex;justify-content:space-between;margin-top:7px;font-size:9.5px;color:var(--muted-2)}
+  .storage-advice{margin:14px 0 0;font-size:10.5px;line-height:1.65;color:var(--muted);padding:10px 12px;background:var(--surface-soft);border-radius:9px}
+  .storage-advice.warn{background:#fbf1e6;color:#8d5b2f}
+  .storage-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:18px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--line)}
+  .storage-fact{padding:13px 12px;background:var(--surface)}
+  .storage-fact strong{display:block;font-family:var(--serif);font-size:22px;line-height:1.1;font-weight:500;color:var(--ink)}
+  .storage-fact span{display:block;margin-top:5px;font-size:9.5px;color:var(--muted)}
+  .backup-panel{padding:24px}
+  .backup-actions{display:grid;gap:9px}
+  .backup-action{
+    display:flex;align-items:center;gap:13px;width:100%;padding:14px;border:1px solid var(--line);
+    border-radius:12px;background:var(--surface-soft);text-align:left;transition:.16s;
+  }
+  .backup-action:hover{background:#f5f1e7;border-color:var(--line-strong);transform:translateY(-1px)}
+  .backup-icon{
+    width:40px;height:40px;flex:none;border-radius:10px;display:grid;place-items:center;
+    background:var(--green-soft);color:var(--green);border:1px solid #d7e3d9;
+  }
+  .backup-action.import .backup-icon{background:var(--accent-soft);color:var(--accent-deep);border-color:#eed8cc}
+  .backup-action-text{flex:1;min-width:0}
+  .backup-action-text strong{display:block;font-size:12px;font-weight:650}
+  .backup-action-text span{display:block;margin-top:2px;font-size:10px;color:var(--muted);line-height:1.5}
+  .backup-action>.icon{width:15px;height:15px;color:var(--muted-2)}
+  .last-backup{display:flex;align-items:center;gap:6px;margin:14px 0 0;color:var(--muted-2);font-size:9.5px}
+  .last-backup .icon{width:12px;height:12px}
+  .privacy-panel{padding:20px 24px;margin-top:18px;display:flex;gap:14px;align-items:flex-start}
+  .privacy-icon{width:36px;height:36px;border-radius:10px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;flex:none}
+  .privacy-panel h3{margin:1px 0 5px;font-size:12px;font-weight:650}
+  .privacy-panel p{margin:0;color:var(--muted);font-size:10.5px;line-height:1.7}
+  .privacy-panel a{color:var(--green);text-decoration:underline;text-underline-offset:2px}
+  .danger-panel{padding:20px 24px;margin-top:18px;display:flex;align-items:center;gap:16px;border-color:#ead7d2;background:linear-gradient(90deg,#fffdf8,#fdf5f2)}
+  .danger-panel .danger-text{flex:1}
+  .danger-panel h3{margin:0 0 4px;font-size:12px;font-weight:650;color:#7f3c32}
+  .danger-panel p{margin:0;font-size:10.5px;color:#9b7169;line-height:1.5}
+
+  /* ---------- Modal base ---------- */
+  .modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:24px}
+  .modal.open{display:flex}
+  .modal-backdrop{position:absolute;inset:0;background:rgba(18,28,22,.54);backdrop-filter:blur(5px);animation:fadeIn .2s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal-panel{
+    position:relative;z-index:1;width:min(600px,100%);max-height:calc(100dvh - 48px);display:flex;flex-direction:column;
+    background:var(--surface);border-radius:23px;box-shadow:var(--shadow-lg);overflow:hidden;
+    animation:modalIn .27s cubic-bezier(.2,.85,.2,1);
+  }
+  @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+  .modal-lg{width:min(850px,100%)}
+  .modal-md{width:min(660px,100%)}
+  .modal-sm{width:min(440px,100%)}
+  .modal-head{
+    display:flex;align-items:flex-start;gap:16px;padding:21px 25px 18px;border-bottom:1px solid var(--line);
+    background:rgba(255,253,248,.96);backdrop-filter:blur(10px);flex:none;position:relative;z-index:2;
+  }
+  .modal-head-text{flex:1;min-width:0}
+  .modal-eyebrow{margin:0 0 4px;color:var(--muted);font-size:9px;letter-spacing:.16em;font-weight:650}
+  .modal-title{margin:0;font-family:var(--serif);font-size:24px;line-height:1.25;font-weight:500;letter-spacing:.01em}
+  .modal-close{margin:-3px -5px 0 0}
+  .modal-panel > form{display:flex;flex-direction:column;flex:1;min-height:0}
+  .modal-body{padding:22px 25px;overflow:auto;flex:1;min-height:0;overscroll-behavior:contain}
+  .modal-footer{
+    display:flex;align-items:center;justify-content:flex-end;gap:9px;padding:15px 25px;
+    border-top:1px solid var(--line);background:rgba(255,253,248,.97);flex:none;
+  }
+  .modal-footer .footer-info{margin-right:auto;color:var(--muted-2);font-size:9.5px;line-height:1.5}
+
+  /* ---------- Book editor ---------- */
+  .book-editor{display:grid;grid-template-columns:202px minmax(0,1fr);gap:28px;align-items:start}
+  .cover-editor{position:sticky;top:0}
+  .cover-preview{
+    position:relative;width:100%;aspect-ratio:2/3;border-radius:5px 14px 14px 5px;overflow:hidden;
+    background:linear-gradient(150deg,#eee8db,#e3dccd);border:1px dashed #c9c0b1;
+    box-shadow:0 12px 24px rgba(39,48,40,.12);
+  }
+  .cover-preview::before{
+    content:"";position:absolute;inset:0 auto 0 0;width:8px;z-index:4;pointer-events:none;
+    background:linear-gradient(90deg,rgba(0,0,0,.14),transparent);opacity:.6;
+  }
+  .cover-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:var(--muted);text-align:center;padding:18px}
+  .cover-empty .icon{width:31px;height:31px;stroke-width:1.3;color:#9d9484}
+  .cover-empty span{font-size:10px;line-height:1.5}
+  .cover-preview img{position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:cover;display:none}
+  .cover-preview.has-image img{display:block}
+  .cover-preview.has-image .cover-empty{display:none}
+  .remove-cover{
+    position:absolute;z-index:6;right:8px;top:8px;width:28px;height:28px;min-height:28px;padding:0;
+    border:0;border-radius:99px;background:rgba(20,31,24,.7);color:#fff;display:grid;place-items:center;
+    backdrop-filter:blur(5px);
+  }
+  .remove-cover:hover{background:rgba(141,56,46,.9)}
+  .remove-cover .icon{width:14px;height:14px}
+  .cover-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+  .cover-actions .btn{min-height:37px;padding:0 8px;font-size:11px;border-radius:9px}
+  .cover-tip{margin:9px 0 0;color:var(--muted-2);font-size:9px;line-height:1.55;text-align:center}
+  .book-fields{min-width:0}
+  .field{margin-bottom:16px}
+  .field:last-child{margin-bottom:0}
+  .field>label{display:flex;align-items:center;gap:5px;margin-bottom:6px;font-size:11.5px;font-weight:600;color:var(--ink-soft)}
+  .field>label .req{color:var(--accent);font-size:12px;font-weight:700}
+  .field>label .opt{color:var(--muted-2);font-size:9.5px;font-weight:400;margin-left:auto}
+  .input,.select,.textarea{
+    width:100%;min-height:45px;padding:10px 13px;border:1px solid var(--line);border-radius:11px;
+    background:#fbf8f1;color:var(--ink);font-size:13px;outline:none;
+    transition:border-color .16s,background .16s,box-shadow .16s;
+  }
+  .input::placeholder,.textarea::placeholder{color:var(--muted-2)}
+  .input:focus,.select:focus,.textarea:focus{border-color:#9fb7a6;background:#fff;box-shadow:0 0 0 3px rgba(35,72,58,.07)}
+  .input.invalid,.select.invalid{border-color:var(--danger);box-shadow:0 0 0 3px rgba(167,68,56,.07)}
+  .textarea{resize:vertical;min-height:76px;line-height:1.65}
+  .select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23728078' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .input-action{display:flex}
+  .input-action .input{flex:1;border-radius:11px 0 0 11px;min-width:0}
+  .input-action .btn{border-radius:0 11px 11px 0;min-height:45px;padding:0 14px;font-size:11.5px}
+  .hint{margin:6px 0 0;color:var(--muted-2);font-size:9.5px;line-height:1.55;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .hint.success{color:#3c7054}
+  .hint.error{color:var(--danger)}
+  .hint .spinner{width:12px;height:12px;border-width:1.5px}
+  .location-select-row{display:flex;gap:7px;align-items:stretch}
+  .location-select-row .select{flex:1;min-width:0}
+  .location-select-row .btn{min-height:45px;padding:0 12px;flex:none;font-size:11px;border-radius:10px}
+  .spinner{width:17px;height:17px;border:2px solid rgba(255,255,255,.28);border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;flex:none}
+  .hint .spinner{border-color:rgba(35,72,58,.18);border-top-color:var(--green-mid)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .field-error{margin:4px 0 0;color:var(--danger);font-size:9.5px}
+
+  /* ---------- Detail ---------- */
+  .detail-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;align-items:start}
+  .detail-cover-wrap{position:sticky;top:0}
+  .detail-cover{
+    position:relative;aspect-ratio:2/3;border-radius:5px 14px 14px 5px;overflow:hidden;
+    box-shadow:0 16px 30px rgba(39,48,40,.18);
+  }
+  .detail-cover .cover-art{padding:24px 18px 18px 25px}
+  .detail-cover .cover-art-title{font-size:25px;-webkit-line-clamp:5}
+  .detail-cover .cover-art-author{font-size:10px;margin-top:12px}
+  .detail-cover .cover-mark{font-size:8.5px}
+  .detail-cover .cover-img{z-index:2}
+  .detail-heading{padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .detail-title{margin:0;font-family:var(--serif);font-size:30px;line-height:1.25;font-weight:500;word-break:break-word}
+  .detail-author{margin:7px 0 0;color:var(--muted);font-size:12px}
+  .detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+  .tag{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:99px;background:var(--green-soft);color:var(--green);font-size:9.5px;line-height:1.4}
+  .tag .icon{width:11px;height:11px}
+  .detail-list{margin:0;display:grid;gap:0}
+  .detail-row{display:grid;grid-template-columns:82px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid rgba(225,218,205,.62);font-size:11.5px}
+  .detail-row:last-child{border-bottom:0}
+  .detail-row dt{color:var(--muted);font-size:10.5px}
+  .detail-row dd{margin:0;color:var(--ink-soft);word-break:break-word;line-height:1.6}
+  .detail-note{margin-top:15px;padding:13px 14px;background:var(--surface-soft);border-radius:10px;font-size:11px;color:var(--ink-soft);line-height:1.7;white-space:pre-wrap;word-break:break-word}
+  .detail-note-label{display:flex;align-items:center;gap:6px;margin:0 0 5px;color:var(--muted);font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+  .detail-empty-note{color:var(--muted-2);font-style:italic}
+  .detail-actions{display:flex;gap:9px}
+
+  /* ---------- Location form / import / confirm ---------- */
+  .field-note{margin:7px 0 0;color:var(--muted-2);font-size:9.5px;line-height:1.6}
+  .modal-callout{display:flex;gap:11px;padding:13px 14px;border-radius:11px;background:var(--accent-soft);color:#7e4c35;font-size:10.5px;line-height:1.65;margin-bottom:18px}
+  .modal-callout .icon{width:18px;height:18px;flex:none;margin-top:1px}
+  .modal-callout.neutral{background:var(--surface-soft);color:var(--muted)}
+  .confirm-icon{
+    width:50px;height:50px;border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;
+    background:var(--accent-soft);color:var(--accent-deep);
+  }
+  .confirm-icon .icon{width:23px;height:23px}
+  .confirm-icon.danger{background:var(--danger-soft);color:var(--danger)}
+  .confirm-body{text-align:center;padding:7px 4px 12px}
+  .confirm-body h3{margin:0 0 8px;font-family:var(--serif);font-size:23px;font-weight:500}
+  .confirm-body p{margin:0 auto;max-width:340px;color:var(--muted);font-size:11.5px;line-height:1.75;white-space:pre-line}
+  .confirm-body .migrate-select{margin:17px 0 0;text-align:left}
+  .confirm-actions{display:flex;gap:9px;padding:0 25px 22px}
+  .confirm-actions .btn{flex:1;min-height:45px}
+  .import-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--line);margin-bottom:18px}
+  .import-metric{padding:14px 12px;background:var(--surface-soft)}
+  .import-metric strong{display:block;font-family:var(--serif);font-size:25px;font-weight:500;line-height:1.1;color:var(--green)}
+  .import-metric span{display:block;margin-top:4px;color:var(--muted);font-size:9.5px}
+  .mode-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0 0}
+  .mode-card{position:relative;display:block;cursor:pointer}
+  .mode-card input{position:absolute;opacity:0;pointer-events:none}
+  .mode-card-body{height:100%;padding:13px 14px;border:1px solid var(--line);border-radius:11px;background:var(--surface-soft);transition:.15s}
+  .mode-card-body strong{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:650}
+  .mode-card-body strong::before{content:"";width:10px;height:10px;border-radius:50%;border:1.5px solid #b4aca0;flex:none;transition:.15s}
+  .mode-card-body span{display:block;margin:5px 0 0 16px;color:var(--muted);font-size:9.5px;line-height:1.6}
+  .mode-card input:checked+.mode-card-body{border-color:#9fb7a6;background:var(--green-soft)}
+  .mode-card input:checked+.mode-card-body strong::before{border-color:var(--green);background:var(--green);box-shadow:inset 0 0 0 2.5px var(--green-soft)}
+  .mode-card input:focus-visible+.mode-card-body{outline:2px solid var(--accent);outline-offset:2px}
+  .import-warning{margin:13px 0 0;padding:10px 12px;border-radius:9px;background:#fbf1e6;color:#8d5b2f;font-size:9.5px;line-height:1.6}
+  .import-progress{margin:12px 0 0;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .import-progress .spinner{width:13px;height:13px;border-width:1.5px;border-color:rgba(35,72,58,.18);border-top-color:var(--green-mid)}
+
+  /* ---------- Scan ---------- */
+  .scan-modal{z-index:1200;background:rgba(8,16,12,.68)}
+  .scan-panel{
+    position:relative;z-index:1;width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;
+    background:#12221b;color:#f2eee2;border:1px solid rgba(255,255,255,.09);border-radius:22px;
+    box-shadow:0 35px 90px rgba(0,0,0,.45);animation:modalIn .27s cubic-bezier(.2,.85,.2,1);
+  }
+  .scan-head{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 15px}
+  .scan-head-text{flex:1}
+  .scan-eyebrow{margin:0 0 3px;color:rgba(242,238,226,.36);font-size:8.5px;letter-spacing:.17em}
+  .scan-title{margin:0;font-family:var(--serif);font-size:23px;font-weight:500}
+  .scan-head .icon-btn{color:rgba(242,238,226,.55);background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.09)}
+  .scan-head .icon-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.18)}
+  .scan-stage{position:relative;margin:0 22px;aspect-ratio:4/3.25;border-radius:15px;overflow:hidden;background:#0a1510;border:1px solid rgba(255,255,255,.08)}
+  .scan-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s}
+  .scan-stage video.active{opacity:1}
+  .scan-placeholder{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;
+    color:rgba(242,238,226,.28);background:radial-gradient(circle at center,#1b3026,#0d1913);
+  }
+  .scan-placeholder .icon{width:42px;height:42px;stroke-width:1.2}
+  .scan-placeholder span{font-size:10px;letter-spacing:.05em}
+  .scan-fallback-btn{
+    min-height:40px;margin-top:2px;padding:0 18px;border-radius:99px;
+    border:1px solid rgba(240,220,188,.38);background:rgba(240,220,188,.1);
+    color:#f0dcbc;font-size:11px;font-weight:600;letter-spacing:.03em;
+    transition:background .18s,border-color .18s;
+  }
+  .scan-fallback-btn:hover,.scan-fallback-btn:focus-visible{background:rgba(240,220,188,.2);border-color:rgba(240,220,188,.6);outline:0}
+  .scan-frame{position:absolute;inset:16% 12%;pointer-events:none;border-radius:5px}
+  .scan-frame::before,.scan-frame::after{content:"";position:absolute;width:34px;height:34px;border:2px solid rgba(240,220,188,.85);border-radius:2px}
+  .scan-frame::before{left:0;top:0;border-right:0;border-bottom:0}
+  .scan-frame::after{right:0;bottom:0;border-left:0;border-top:0}
+  .scan-frame-lines{position:absolute;inset:16% 12%;pointer-events:none;border-radius:5px}
+  .scan-frame-lines::before,.scan-frame-lines::after{content:"";position:absolute;width:34px;height:34px;border:2px solid rgba(240,220,188,.85);border-radius:2px}
+  .scan-frame-lines::before{right:0;top:0;border-left:0;border-bottom:0}
+  .scan-frame-lines::after{left:0;bottom:0;border-right:0;border-top:0}
+  .scan-line{position:absolute;left:12%;right:12%;top:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(220,179,141,.8),transparent);box-shadow:0 0 15px rgba(220,179,141,.55);animation:scanLine 2.3s ease-in-out infinite}
+  @keyframes scanLine{0%,100%{top:20%;opacity:.25}50%{top:78%;opacity:.95}}
+  .scan-status{
+    position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:3;
+    max-width:88%;padding:6px 11px;border-radius:99px;background:rgba(9,18,13,.66);backdrop-filter:blur(8px);
+    color:rgba(242,238,226,.74);font-size:9.5px;text-align:center;line-height:1.4;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .scan-status.success{color:#cfe9d4}
+  .scan-status.error{color:#f2c3b8}
+  .scan-manual{padding:16px 22px 22px}
+  .scan-divider{display:flex;align-items:center;gap:10px;color:rgba(242,238,226,.28);font-size:9px;margin-bottom:11px}
+  .scan-divider::before,.scan-divider::after{content:"";height:1px;background:rgba(255,255,255,.09);flex:1}
+  .scan-manual-row{display:flex;gap:7px}
+  .scan-manual-row input{
+    flex:1;min-width:0;height:43px;padding:0 12px;border:1px solid rgba(255,255,255,.12);
+    border-radius:9px;background:rgba(255,255,255,.06);color:#fff;outline:0;font-family:var(--mono);font-size:12px;
+  }
+  .scan-manual-row input::placeholder{color:rgba(242,238,226,.28);font-family:var(--sans)}
+  .scan-manual-row input:focus{border-color:rgba(220,179,141,.6);background:rgba(255,255,255,.09)}
+  .scan-manual-row .btn{min-height:43px;padding:0 17px;background:#eee7d8;color:#1b2d24;border:0}
+  .scan-tip{margin:10px 0 0;color:rgba(242,238,226,.33);font-size:8.5px;line-height:1.6}
+
+  /* ---------- Toast ---------- */
+  .toast-stack{
+    position:fixed;right:24px;bottom:24px;z-index:3000;display:flex;flex-direction:column;gap:9px;
+    pointer-events:none;max-width:min(370px,calc(100vw - 32px));
+  }
+  .toast{
+    display:flex;align-items:flex-start;gap:9px;padding:12px 15px;border-radius:12px;
+    background:#1d3329;color:#f5f2e8;box-shadow:0 12px 30px rgba(13,25,19,.28);
+    font-size:11.5px;line-height:1.55;animation:toastIn .25s cubic-bezier(.2,.85,.2,1) both;
+    pointer-events:auto;border:1px solid rgba(255,255,255,.08);
+  }
+  .toast.hide{animation:toastOut .22s ease both}
+  .toast .icon{width:16px;height:16px;flex:none;margin-top:1px;color:#a8c9ae}
+  .toast.error{background:#662d28;border-color:rgba(255,255,255,.06)}
+  .toast.error .icon{color:#f1b9ad}
+  .toast.success .icon{color:#b6d8bc}
+  .toast.info .icon{color:#e6c8ac}
+  @keyframes toastIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(4px) scale(.98)}}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:1100px){
+    .main{padding:36px 32px 72px}
+    .book-grid{grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:26px 19px}
+    .summary-item{padding:0 18px}
+  }
+  @media (max-width:900px){
+    .app-shell{margin-left:0}
+    .sidebar{display:none}
+    .main{padding:22px 20px calc(104px + env(safe-area-inset-bottom))}
+    .mobile-header{
+      display:flex;align-items:center;justify-content:space-between;height:58px;padding:0 20px;
+      position:sticky;top:0;z-index:70;background:rgba(243,240,232,.88);
+      border-bottom:1px solid rgba(225,218,205,.8);backdrop-filter:blur(16px);
+    }
+    .mobile-brand{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:.05em}
+    .mobile-brand .brand-mark{width:29px;height:29px;border-radius:9px;background:var(--green);color:#f4efe3;box-shadow:none}
+    .mobile-brand .brand-mark .icon{width:16px;height:16px}
+    .mobile-local{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--muted);letter-spacing:.06em}
+    .mobile-local .live-dot{width:5px;height:5px;background:var(--green-mid);box-shadow:0 0 0 3px rgba(74,109,91,.1)}
+    .mobile-nav{
+      display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:90;
+      padding:7px 10px calc(7px + env(safe-area-inset-bottom));background:rgba(255,253,248,.94);
+      border-top:1px solid var(--line);backdrop-filter:blur(18px);box-shadow:0 -8px 25px rgba(39,48,40,.05);
+    }
+    .mobile-nav button{
+      border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+      min-height:49px;color:var(--muted);font-size:9px;border-radius:10px;
+    }
+    .mobile-nav button.active{color:var(--green)}
+    .mobile-nav button .icon{width:20px;height:20px}
+    .mobile-nav .mn-add{color:var(--green)}
+    .mn-add-wrap{
+      width:42px;height:42px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;
+      margin-top:-20px;margin-bottom:1px;box-shadow:0 7px 16px rgba(35,72,58,.25);border:3px solid var(--surface);
+    }
+    .mn-add-wrap .icon{width:20px;height:20px}
+    .mobile-nav .mn-add span:last-child{font-size:8.5px}
+    .page-head{align-items:flex-start}
+    .page-title{font-size:35px}
+    .head-actions .desktop-add{display:none}
+    .library-toolbar{top:70px;padding:9px;border-radius:15px}
+    .search-field{height:44px}
+    .select-wrap{height:44px}
+    .select-wrap select{min-width:112px;max-width:145px;font-size:11.5px}
+    .summary-strip{padding:15px 2px;overflow-x:auto;scrollbar-width:none;gap:0}
+    .summary-strip::-webkit-scrollbar{display:none}
+    .summary-item{padding:0 15px;flex:none}
+    .summary-num{font-size:23px}
+    .summary-live{display:none}
+    .summary-label{font-size:10px;white-space:nowrap}
+    .book-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:23px 16px}
+    .shelf-grid{grid-template-columns:1fr;gap:14px}
+    .data-grid{grid-template-columns:1fr}
+    .modal{padding:14px}
+    .modal-panel{max-height:calc(100dvh - 28px);border-radius:19px}
+    .toast-stack{right:16px;bottom:calc(83px + env(safe-area-inset-bottom));left:16px;max-width:none}
+    .book-editor{grid-template-columns:180px minmax(0,1fr);gap:20px}
+    .modal-head{padding:18px 20px 15px}
+    .modal-body{padding:19px 20px}
+    .modal-footer{padding:13px 20px}
+    .detail-layout{grid-template-columns:190px minmax(0,1fr);gap:22px}
+    .detail-title{font-size:27px}
+  }
+  @media (max-width:640px){
+    .main{padding:18px 16px calc(102px + env(safe-area-inset-bottom))}
+    .page-head{margin-bottom:20px}
+    .page-title{font-size:31px}
+    .page-desc{font-size:11.5px;margin-top:6px}
+    .eyebrow{font-size:8px;letter-spacing:.16em;margin-bottom:7px}
+    .summary-strip{margin-bottom:18px}
+    .summary-item{padding:0 13px}
+    .summary-item:first-child{padding-left:1px}
+    .summary-num{font-size:22px}
+    .library-toolbar{flex-direction:column;align-items:stretch;gap:8px;top:68px;padding:8px;margin-bottom:12px}
+    .search-field{height:44px;flex:none}
+    .toolbar-filters{display:grid;grid-template-columns:1.15fr .85fr;gap:7px}
+    .select-wrap select{max-width:none;min-width:0;width:100%;font-size:11.5px}
+    .results-bar{margin-bottom:12px}
+    .book-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 15px}
+    .book-cover{box-shadow:0 9px 17px rgba(41,48,39,.15),0 2px 4px rgba(41,48,39,.08)}
+    .cover-art{padding:15px 11px 11px 17px}
+    .cover-art-title{font-size:16px;-webkit-line-clamp:4}
+    .cover-art-author{font-size:8px}
+    .cover-mark{font-size:6.5px}
+    .book-info{padding-top:10px}
+    .book-title{font-size:13px}
+    .book-author{font-size:10.5px;margin-top:4px}
+    .book-foot{margin-top:7px;gap:5px}
+    .book-loc{font-size:8.5px;padding:3px 6px;max-width:77%}
+    .book-isbn{font-size:7.5px}
+    .empty-state{padding:50px 18px 55px}
+    .empty-state h2{font-size:22px}
+    .empty-state p{font-size:11.5px}
+    .empty-actions{flex-direction:column;align-items:stretch;max-width:250px;margin-left:auto;margin-right:auto}
+    .location-intro{align-items:flex-start;font-size:10.5px;padding:12px 14px}
+    .shelf-head{padding:17px 16px 13px}
+    .levels{padding:7px 8px}
+    .shelf-foot{padding:2px 16px 13px}
+    .storage-panel,.backup-panel{padding:19px 17px}
+    .privacy-panel,.danger-panel{padding:17px;flex-wrap:wrap}
+    .danger-panel .btn{width:100%}
+    .storage-total strong{font-size:33px}
+    .modal{padding:0}
+    .modal-panel{width:100%;max-height:100dvh;height:100dvh;border-radius:0}
+    .modal-head{padding-top:calc(16px + env(safe-area-inset-top))}
+    .modal-body{padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+    .modal-footer{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+    .book-editor{grid-template-columns:1fr;gap:18px}
+    .cover-editor{position:static;display:grid;grid-template-columns:124px minmax(0,1fr);gap:12px;align-items:start}
+    .cover-preview{width:124px;border-radius:4px 10px 10px 4px}
+    .cover-empty{padding:8px}
+    .cover-empty .icon{width:23px;height:23px}
+    .cover-empty span{font-size:8.5px}
+    .cover-actions{grid-template-columns:1fr;margin-top:0}
+    .cover-actions .btn{min-height:35px}
+    .cover-tip{display:none}
+    .detail-layout{grid-template-columns:1fr}
+    .detail-cover-wrap{position:static;display:flex;justify-content:center}
+    .detail-cover{width:155px}
+    .detail-cover .cover-art-title{font-size:19px}
+    .detail-search{}
+    .detail-heading{padding-top:5px}
+    .detail-title{font-size:25px}
+    .detail-row{grid-template-columns:76px 1fr;font-size:11px}
+    .modal-head .modal-title{font-size:22px}
+    .modal-footer{flex-wrap:wrap}
+    .modal-footer .btn{flex:1}
+    .form-row{grid-template-columns:1fr}
+    .mode-options{grid-template-columns:1fr}
+    .import-preview{grid-template-columns:repeat(3,1fr)}
+    .scan-panel{width:100%;height:100dvh;max-height:100dvh;border-radius:0;display:flex;flex-direction:column}
+    .scan-head{padding-top:calc(17px + env(safe-area-inset-top))}
+    .scan-stage{flex:1;aspect-ratio:auto;min-height:220px;margin:0 16px}
+    .scan-manual{padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+    .confirm-actions{padding:0 20px calc(18px + env(safe-area-inset-bottom))}
+    .toast{font-size:11px}
+  }
+  @media (max-width:380px){
+    .main{padding-left:12px;padding-right:12px}
+    .mobile-header{padding:0 14px}
+    .book-grid{gap:20px 12px}
+    .cover-art-title{font-size:14.5px}
+    .summary-item{padding:0 10px}
+    .summary-num{font-size:20px}
+    .summary-label{font-size:9px}
+    .select-wrap select{font-size:10.5px}
+    .book-title{font-size:12.5px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto !important;animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  }
+</style>
 </head>
 <body>
-<p>正在打开拾页书库…若未自动跳转，请<a href="family-library.html">点此进入</a>。</p>
+<svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></symbol>
+  <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2Z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7Z"/></symbol>
+  <symbol id="i-library" viewBox="0 0 24 24"><path d="m4 19 2-14h4l-2 14"/><path d="M10 5h4v14h-4"/><path d="M14 19h4.5L20 6h-4l-.5 6"/><path d="M2 19h20"/></symbol>
+  <symbol id="i-shelf" viewBox="0 0 24 24"><path d="M4 4v16"/><path d="M20 4v16"/><path d="M4 9h16"/><path d="M4 15h16"/><path d="M8 4v5"/><path d="M12 4v5"/><path d="M9 9v6"/><path d="M15 9v6"/></symbol>
+  <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8"/><path d="M10 8v8"/><path d="M13 8v8"/><path d="M17 8v8"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L8 7H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-4.5-4.5L7 20"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12s-8-7-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.7"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-hard-drive" viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.5 5h13L22 12v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5Z"/><path d="M6 15h.01"/><path d="M10 15h.01"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2Z"/><path d="m19 14 .7 2.3L22 17l-2.3.7L19 20l-.7-2.3L16 17l2.3-.7Z"/><path d="m5 14 .5 1.5L7 16l-1.5.5L5 18l-.5-1.5L3 16l1.5-.5Z"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-folder-up" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="m12 11 3 3"/><path d="m12 11-3 3"/><path d="M12 11v7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+</svg>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <button class="brand" type="button" data-action="nav" data-view="library" aria-label="返回书库">
+      <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-book-open"></use></svg></span>
+      <span>
+        <span class="brand-name">拾页</span>
+        <span class="brand-sub">家庭图书管理工作台</span>
+      </span>
+    </button>
+
+    <p class="nav-label">我的书房</p>
+    <nav class="sidebar-nav" aria-label="主要导航">
+      <button class="nav-item active" type="button" data-action="nav" data-view="library" data-nav="library">
+        <svg class="icon" aria-hidden="true"><use href="#i-library"></use></svg>
+        <span>书库</span><span class="nav-indicator"></span>
+      </button>
+      <button class="nav-item" type="button" data-action="nav" data-view="locations" data-nav="locations">
+        <svg class="icon" aria-hidden="true"><use href="#i-shelf"></use></svg>
+        <span>位置管理</span><span class="nav-indicator"></span>
+      </button>
+      <button class="nav-item" type="button" data-action="nav" data-view="data" data-nav="data">
+        <svg class="icon" aria-hidden="true"><use href="#i-database"></use></svg>
+        <span>数据与备份</span><span class="nav-indicator"></span>
+      </button>
+    </nav>
+
+    <div class="sidebar-stats" aria-label="藏书概况">
+      <div class="sidebar-stat"><strong id="sideBookCount">0</strong><span>本藏书</span></div>
+      <div class="sidebar-stat"><strong id="sideLocationCount">0</strong><span>个位置</span></div>
+    </div>
+
+    <div class="side-storage">
+      <div class="side-storage-row"><span>本地存储</span><strong id="sideStorageText">—</strong></div>
+      <div class="mini-bar"><span id="sideStorageBar"></span></div>
+      <p>所有藏书与封面仅保存在此浏览器，不会上传到服务器。</p>
+    </div>
+
+    <div class="sidebar-foot"><span class="live-dot"></span>离线可用 · 数据存于本机</div>
+  </aside>
+
+  <div class="app-shell-inner">
+    <header class="mobile-header">
+      <div class="mobile-brand">
+        <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-book-open"></use></svg></span>
+        <span>拾页</span>
+      </div>
+      <span class="mobile-local"><span class="live-dot"></span>本地书库</span>
+    </header>
+
+    <main class="main">
+      <!-- 书库 -->
+      <section class="view active" id="view-library">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot"></span>Family Library · 家庭藏书</p>
+            <h1 class="page-title">我的书库</h1>
+            <p class="page-desc">找到每一本书，也记住它在哪里。</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn btn-primary desktop-add" type="button" data-action="add-book">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"></use></svg>新增图书
+            </button>
+          </div>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-item"><span class="summary-num" id="heroBookCount">0</span><span class="summary-label">本藏书</span></div>
+          <div class="summary-item"><span class="summary-num" id="heroLocationCount">0</span><span class="summary-label">个存放位置</span></div>
+          <div class="summary-item"><span class="summary-num" id="heroCoverCount">0</span><span class="summary-label">张封面</span></div>
+          <span class="summary-live"><span class="live-dot"></span>更改自动保存</span>
+        </div>
+
+        <div class="library-toolbar">
+          <label class="search-field" for="searchInput">
+            <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="搜索书名、作者、出版社、ISBN 或位置…" aria-label="搜索藏书">
+            <button class="clear-search" id="clearSearchBtn" type="button" data-action="clear-search" hidden aria-label="清空搜索">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="#i-x"></use></svg>
+            </button>
+          </label>
+          <div class="toolbar-filters">
+            <div class="select-wrap">
+              <svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg>
+              <select id="locationFilter" aria-label="按位置筛选"></select>
+              <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+            </div>
+            <div class="select-wrap sort">
+              <select id="sortSelect" aria-label="排序方式">
+                <option value="recent">最近添加</option>
+                <option value="title">按书名</option>
+                <option value="author">按作者</option>
+              </select>
+              <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-bar">
+          <p class="results-text" id="resultsText">正在读取书库…</p>
+          <button class="reset-filters" id="resetFiltersBtn" type="button" data-action="reset-filters" hidden>清除筛选</button>
+        </div>
+
+        <div class="book-grid" id="bookGrid" aria-live="polite"></div>
+
+        <div class="empty-state" id="emptyLibrary" hidden>
+          <div class="empty-art" aria-hidden="true">
+            <svg viewBox="0 0 160 140" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 122h124" opacity=".5"/>
+              <path d="M34 117V79h29v38" fill="#f7f3e8"/>
+              <path d="M38 79h21v-7H38z" fill="#e7decb"/>
+              <path d="M63 117V61h28v56" fill="#e5eadf"/>
+              <path d="M67 61h20v-7H67z" fill="#d3dfd4"/>
+              <path d="M91 117V88h26v29" fill="#f0e5d7"/>
+              <path d="M95 88h18v-6H95z" fill="#e3d3bd"/>
+              <path d="M42 90h13M42 97h13M42 104h9M71 73h13M71 80h13M71 87h9M71 94h13M99 97h11M99 104h8" opacity=".55"/>
+              <path d="M25 117h107" opacity=".8"/>
+              <path d="M118 118c9-16 12-26 9-36M128 88c-7-2-10-8-9-14 6 1 10 6 9 14ZM125 99c6-3 11-1 14 4-5 4-11 3-14-4Z" opacity=".7"/>
+              <circle cx="131" cy="34" r="12" opacity=".18"/>
+            </svg>
+          </div>
+          <h2>书架还在等第一本书</h2>
+          <p>扫描 ISBN 自动识别，或手动录入书名与位置。所有数据只留在这台设备上。</p>
+          <div class="empty-actions">
+            <button class="btn btn-primary" type="button" data-action="add-book">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"></use></svg>录入第一本书
+            </button>
+            <button class="btn btn-soft" type="button" data-action="load-sample">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="#i-sparkles"></use></svg>载入示例藏书
+            </button>
+          </div>
+        </div>
+
+        <div class="empty-state" id="emptySearch" hidden>
+          <div class="empty-search-art"><svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg></div>
+          <h2>没有找到匹配的书</h2>
+          <p id="emptySearchText">换一个关键词试试，或清除当前的位置筛选。</p>
+          <div class="empty-actions">
+            <button class="btn btn-soft" type="button" data-action="reset-filters">清除筛选条件</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 位置管理 -->
+      <section class="view" id="view-locations">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot"></span>Shelves · 家的坐标</p>
+            <h1 class="page-title">位置管理</h1>
+            <p class="page-desc">给书架和层位一个名字，让每本书都有迹可循。</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn btn-primary desktop-add" type="button" data-action="add-location">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"></use></svg>新增货架
+            </button>
+          </div>
+        </div>
+
+        <div class="location-intro">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span>位置支持两级结构：货架 → 层 / 格。新增图书时选择具体层位；筛选货架时，会一并显示其下所有层位的藏书。</span>
+        </div>
+
+        <div class="shelf-grid" id="shelfGrid"></div>
+        <div class="empty-state empty-locations" id="emptyLocations" hidden>
+          <div class="empty-search-art"><svg class="icon" aria-hidden="true"><use href="#i-shelf"></use></svg></div>
+          <h2>还没有定义存放位置</h2>
+          <p>先建一个「客厅书柜」，再添加它的第 1 层、第 2 层。录入图书时就能直接选择。</p>
+          <div class="empty-actions">
+            <button class="btn btn-primary" type="button" data-action="add-location">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"></use></svg>新增第一个货架
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 数据与备份 -->
+      <section class="view" id="view-data">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot"></span>Vault · 本地数据</p>
+            <h1 class="page-title">数据与备份</h1>
+            <p class="page-desc">书库完全属于你。定期导出备份，换设备也不丢书。</p>
+          </div>
+        </div>
+
+        <div class="data-grid">
+          <section class="panel storage-panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title"><svg class="icon" aria-hidden="true"><use href="#i-hard-drive"></use></svg>存储概览</h2>
+                <p class="panel-desc">图书信息存于本地，封面图片存于浏览器 IndexedDB。</p>
+              </div>
+            </div>
+            <div class="storage-total"><strong id="dataUsage">—</strong><span id="dataQuotaText">计算中…</span></div>
+            <div class="storage-bar" role="progressbar" aria-label="本地存储用量"><span id="dataUsageBar"></span></div>
+            <div class="storage-scale"><span id="dataUsagePct">0%</span><span id="dataQuota">浏览器可用配额 —</span></div>
+            <p class="storage-advice" id="storageAdvice">封面会在保存前自动压缩到长边 800px 以内，兼顾清晰度与容量。</p>
+            <div class="storage-facts">
+              <div class="storage-fact"><strong id="dataBookCount">0</strong><span>本藏书</span></div>
+              <div class="storage-fact"><strong id="dataLocationCount">0</strong><span>个位置</span></div>
+              <div class="storage-fact"><strong id="dataCoverCount">0</strong><span>张封面</span></div>
+            </div>
+          </section>
+
+          <section class="panel backup-panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title"><svg class="icon" aria-hidden="true"><use href="#i-database"></use></svg>备份与恢复</h2>
+                <p class="panel-desc">导出包含图书、位置和封面的完整 JSON 文件。</p>
+              </div>
+            </div>
+            <div class="backup-actions">
+              <button class="backup-action" id="exportBtn" type="button">
+                <span class="backup-icon"><svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg></span>
+                <span class="backup-action-text"><strong>导出备份</strong><span>生成带日期的 JSON 文件，可在另一台设备恢复。</span></span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+              </button>
+              <button class="backup-action import" id="importBtn" type="button">
+                <span class="backup-icon"><svg class="icon" aria-hidden="true"><use href="#i-folder-up"></use></svg></span>
+                <span class="backup-action-text"><strong>导入备份</strong><span>校验文件后，可选择合并或覆盖现有书库。</span></span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+              </button>
+            </div>
+            <p class="last-backup"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg><span id="lastBackupText">还没有导出过备份</span></p>
+            <input type="file" id="importFile" accept="application/json,.json" hidden>
+          </section>
+        </div>
+
+        <section class="panel privacy-panel">
+          <span class="privacy-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span>
+          <div>
+            <h3>关于隐私与联网</h3>
+            <p>书库、位置、封面和备注只保存在当前浏览器。只有在你扫描或查询 ISBN 时，系统才会把该 ISBN 发送至 Google Books 与 Open Library 查询公开书目信息；查询失败时可直接手动录入，不影响保存。导入、导出均为本地文件操作。</p>
+          </div>
+        </section>
+
+        <section class="panel danger-panel">
+          <div class="danger-text">
+            <h3>清空本地书库</h3>
+            <p>删除全部图书、位置和封面。此操作不可撤销，建议先导出备份。</p>
+          </div>
+          <button class="btn btn-danger-soft" type="button" data-action="clear-data">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-trash"></use></svg>清空数据
+          </button>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="移动端导航">
+    <button class="active" type="button" data-action="nav" data-view="library" data-nav="library">
+      <svg class="icon" aria-hidden="true"><use href="#i-library"></use></svg><span>书库</span>
+    </button>
+    <button type="button" data-action="nav" data-view="locations" data-nav="locations">
+      <svg class="icon" aria-hidden="true"><use href="#i-shelf"></use></svg><span>位置</span>
+    </button>
+    <button class="mn-add" type="button" data-action="add-book" aria-label="新增图书">
+      <span class="mn-add-wrap"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg></span>
+      <span>新增</span>
+    </button>
+    <button type="button" data-action="nav" data-view="data" data-nav="data">
+      <svg class="icon" aria-hidden="true"><use href="#i-database"></use></svg><span>数据</span>
+    </button>
+  </nav>
+</div>
+
+<!-- 新增 / 编辑图书 -->
+<div class="modal" id="bookModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="bookModal"></div>
+  <section class="modal-panel modal-lg" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle">
+    <header class="modal-head">
+      <div class="modal-head-text">
+        <p class="modal-eyebrow" id="bookModalEyebrow">NEW BOOK</p>
+        <h2 class="modal-title" id="bookModalTitle">新增图书</h2>
+      </div>
+      <button class="icon-btn modal-close" type="button" data-close="bookModal" aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+      </button>
+    </header>
+    <form id="bookForm" novalidate>
+      <div class="modal-body">
+        <div class="book-editor">
+          <div class="cover-editor">
+            <div class="cover-preview" id="coverPreview">
+              <div class="cover-empty">
+                <svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg>
+                <span>添加一张<br>封面照片</span>
+              </div>
+              <img id="coverPreviewImg" alt="图书封面预览">
+              <button class="remove-cover" id="removeCoverBtn" type="button" data-action="remove-cover" hidden aria-label="移除封面">
+                <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+              </button>
+            </div>
+            <div class="cover-actions">
+              <button class="btn btn-soft" id="cameraBtn" type="button">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="#i-camera"></use></svg>拍照
+              </button>
+              <button class="btn btn-soft" id="albumBtn" type="button">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="#i-image"></use></svg>相册
+              </button>
+            </div>
+            <p class="cover-tip">自动压缩至长边 800px 内</p>
+          </div>
+
+          <div class="book-fields">
+            <div class="field">
+              <label for="bookIsbn">ISBN <span class="opt">扫码或手动输入</span></label>
+              <div class="input-action">
+                <input class="input" id="bookIsbn" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="978… 或 10 位 ISBN">
+                <button class="btn btn-dark" id="scanBtn" type="button">
+                  <svg class="icon icon-sm" aria-hidden="true"><use href="#i-scan"></use></svg>扫码
+                </button>
+              </div>
+              <p class="hint" id="lookupHint">扫描条码，或输入 ISBN 后按回车联网补全书名、作者与出版社。</p>
+            </div>
+
+            <div class="field">
+              <label for="bookTitle">书名 <span class="req">*</span></label>
+              <input class="input" id="bookTitle" type="text" autocomplete="off" placeholder="例如：百年孤独">
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <label for="bookAuthor">作者</label>
+                <input class="input" id="bookAuthor" type="text" autocomplete="off" placeholder="作者姓名">
+              </div>
+              <div class="field">
+                <label for="bookPublisher">出版社</label>
+                <input class="input" id="bookPublisher" type="text" autocomplete="off" placeholder="出版社">
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="bookLocation">存放位置 <span class="req">*</span></label>
+              <div class="location-select-row">
+                <select class="select" id="bookLocation"></select>
+                <button class="btn btn-soft" id="inlineAddLocation" type="button">
+                  <svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"></use></svg>新建
+                </button>
+              </div>
+              <p class="hint">可选货架整体，也可以具体到某一层。</p>
+            </div>
+
+            <div class="field">
+              <label for="bookNote">备注 <span class="opt">可选</span></label>
+              <textarea class="textarea" id="bookNote" rows="3" placeholder="借阅记录、阅读状态、版本说明…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <span class="footer-info">带 <span style="color:var(--accent)">*</span> 为必填项</span>
+        <button class="btn btn-ghost" type="button" data-close="bookModal">取消</button>
+        <button class="btn btn-primary" id="saveBookBtn" type="submit">保存图书</button>
+      </footer>
+    </form>
+  </section>
+</div>
+
+<input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+<input type="file" id="albumInput" accept="image/*" hidden>
+
+<!-- 图书详情 -->
+<div class="modal" id="detailModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="detailModal"></div>
+  <section class="modal-panel modal-md" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+    <header class="modal-head">
+      <div class="modal-head-text">
+        <p class="modal-eyebrow">BOOK DETAIL</p>
+        <h2 class="modal-title" id="detailModalTitle">图书详情</h2>
+      </div>
+      <button class="icon-btn modal-close" type="button" data-close="detailModal" aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+      </button>
+    </header>
+    <div class="modal-body" id="detailContent"></div>
+    <footer class="modal-footer" id="detailActions"></footer>
+  </section>
+</div>
+
+<!-- 新增 / 编辑位置 -->
+<div class="modal" id="locationModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="locationModal"></div>
+  <section class="modal-panel modal-sm" role="dialog" aria-modal="true" aria-labelledby="locationModalTitle">
+    <header class="modal-head">
+      <div class="modal-head-text">
+        <p class="modal-eyebrow">LOCATION</p>
+        <h2 class="modal-title" id="locationModalTitle">新增位置</h2>
+      </div>
+      <button class="icon-btn modal-close" type="button" data-close="locationModal" aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+      </button>
+    </header>
+    <form id="locationForm" novalidate>
+      <div class="modal-body">
+        <div class="field">
+          <label for="locationName">位置名称 <span class="req">*</span></label>
+          <input class="input" id="locationName" type="text" autocomplete="off" maxlength="40" placeholder="例如：客厅书柜 / 第 1 层">
+          <p class="field-error" id="locationError" hidden></p>
+        </div>
+        <div class="field">
+          <label for="locationParent">上级货架 <span class="opt">可选</span></label>
+          <select class="select" id="locationParent"></select>
+          <p class="field-note">不选上级即为一级货架；选择一个货架后，将成为它的层位。目前支持两级结构。</p>
+        </div>
+        <div class="modal-callout neutral">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span>位置名称会显示在图书卡片与筛选器中，建议使用「客厅书柜 · 第 1 层」这类易辨认的命名。</span>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-ghost" type="button" data-close="locationModal">取消</button>
+        <button class="btn btn-primary" type="submit">保存位置</button>
+      </footer>
+    </form>
+  </section>
+</div>
+
+<!-- 删除位置时迁移图书 -->
+<div class="modal" id="migrateModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="migrateModal"></div>
+  <section class="modal-panel modal-sm" role="dialog" aria-modal="true" aria-labelledby="migrateTitle">
+    <header class="modal-head">
+      <div class="modal-head-text">
+        <p class="modal-eyebrow">MOVE BOOKS</p>
+        <h2 class="modal-title" id="migrateTitle">先安置这些书</h2>
+      </div>
+      <button class="icon-btn modal-close" type="button" data-close="migrateModal" aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+      </button>
+    </header>
+    <div class="modal-body">
+      <div class="modal-callout">
+        <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+        <span id="migrateMessage">该位置还有图书，请选择一个新的存放位置后再删除。</span>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="migrateTarget">迁移到</label>
+        <select class="select" id="migrateTarget"></select>
+      </div>
+    </div>
+    <footer class="modal-footer">
+      <button class="btn btn-ghost" type="button" data-close="migrateModal">取消</button>
+      <button class="btn btn-primary" id="migrateConfirmBtn" type="button">迁移并删除</button>
+    </footer>
+  </section>
+</div>
+
+<!-- 导入备份 -->
+<div class="modal" id="importModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="importModal"></div>
+  <section class="modal-panel modal-md" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+    <header class="modal-head">
+      <div class="modal-head-text">
+        <p class="modal-eyebrow">RESTORE</p>
+        <h2 class="modal-title" id="importTitle">导入备份</h2>
+      </div>
+      <button class="icon-btn modal-close" type="button" data-close="importModal" aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+      </button>
+    </header>
+    <div class="modal-body">
+      <div class="import-preview" id="importPreview"></div>
+      <p class="panel-desc" style="margin:0">选择导入方式。封面会重新写入本机 IndexedDB。</p>
+      <div class="mode-options">
+        <label class="mode-card">
+          <input type="radio" name="importMode" value="merge" checked>
+          <span class="mode-card-body"><strong>合并</strong><span>保留现有数据。重复图书（相同 ID 或 ISBN）跳过；位置按名称合并，其余新增。</span></span>
+        </label>
+        <label class="mode-card">
+          <input type="radio" name="importMode" value="overwrite">
+          <span class="mode-card-body"><strong>覆盖</strong><span>先用新文件校验，通过后清空现有图书、位置与封面，再完整恢复备份。</span></span>
+        </label>
+      </div>
+      <p class="import-warning" id="importWarning" hidden>覆盖模式会删除当前书库，建议先导出备份。此操作不可撤销。</p>
+      <p class="import-progress" id="importProgress" hidden><span class="spinner"></span><span id="importProgressText">正在恢复…</span></p>
+    </div>
+    <footer class="modal-footer">
+      <button class="btn btn-ghost" type="button" data-close="importModal" id="importCancelBtn">取消</button>
+      <button class="btn btn-primary" id="importConfirmBtn" type="button">开始导入</button>
+    </footer>
+  </section>
+</div>
+
+<!-- 通用确认 -->
+<div class="modal" id="confirmModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="confirmModal"></div>
+  <section class="modal-panel modal-sm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-body" style="padding-bottom:4px">
+      <div class="confirm-body">
+        <div class="confirm-icon" id="confirmIcon"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg></div>
+        <h3 id="confirmTitle">确认操作</h3>
+        <p id="confirmMessage"></p>
+      </div>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmCancelBtn" type="button">取消</button>
+      <button class="btn btn-primary" id="confirmOkBtn" type="button">确认</button>
+    </div>
+  </section>
+</div>
+
+<!-- 扫码 -->
+<div class="modal scan-modal" id="scanModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="scanModal"></div>
+  <section class="scan-panel" role="dialog" aria-modal="true" aria-labelledby="scanTitle">
+    <header class="scan-head">
+      <div class="scan-head-text">
+        <p class="scan-eyebrow">BARCODE SCANNER</p>
+        <h2 class="scan-title" id="scanTitle">扫描 ISBN 条码</h2>
+      </div>
+      <button class="icon-btn" type="button" data-close="scanModal" aria-label="关闭扫码">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+      </button>
+    </header>
+    <div class="scan-stage">
+      <video id="scanVideo" playsinline muted autoplay></video>
+      <div class="scan-placeholder" id="scanPlaceholder">
+        <svg class="icon" aria-hidden="true"><use href="#i-scan"></use></svg>
+        <span>正在准备摄像头…</span>
+        <button class="scan-fallback-btn" id="scanFallbackBtn" type="button">手动输入 ISBN</button>
+      </div>
+      <div class="scan-frame" aria-hidden="true"></div>
+      <div class="scan-frame-lines" aria-hidden="true"></div>
+      <div class="scan-line" aria-hidden="true"></div>
+      <div class="scan-status" id="scanStatus">请将书背面的 ISBN 条码放入取景框</div>
+    </div>
+    <div class="scan-manual">
+      <div class="scan-divider"><span>或手动输入</span></div>
+      <div class="scan-manual-row">
+        <input id="scanManualIsbn" type="text" inputmode="numeric" autocomplete="off" placeholder="输入 ISBN">
+        <button class="btn" id="scanManualBtn" type="button">识别</button>
+      </div>
+      <p class="scan-tip">自动识码依赖浏览器的 BarcodeDetector 支持。无法调用摄像头时，可直接输入 ISBN 查询。摄像头画面不会被保存或上传。</p>
+    </div>
+  </section>
+</div>
+
+<div class="toast-stack" id="toastStack" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const K_BOOKS = 'shiyue_books_v1';
+  const K_LOCATIONS = 'shiyue_locations_v1';
+  const K_META = 'shiyue_meta_v1';
+  const DB_NAME = 'shiyue_library';
+  const DB_VERSION = 1;
+  const COVER_STORE = 'covers';
+
+  const ICONS = {
+    check: 'check', alert: 'alert', info: 'info', success: 'check',
+    download: 'download', upload: 'upload', book: 'book', shelf: 'shelf', x: 'x'
+  };
+
+  const state = {
+    books: [],
+    locations: [],
+    meta: {},
+    view: 'library',
+    query: '',
+    locationFilter: 'all',
+    sort: 'recent',
+    coverUrls: new Map(),
+    coverObserver: null,
+    renderToken: 0,
+    storageSeq: 0,
+    storageWarned: false,
+    editor: {
+      bookId: null,
+      pendingBlob: null,
+      pendingUrl: null,
+      existingCoverId: null,
+      removeCover: false,
+      lookupToken: 0,
+      lastLookupIsbn: ''
+    },
+    locationEditor: { id: null, parentId: null, fromBook: false },
+    migrateId: null,
+    pendingImport: null,
+    confirmResolver: null,
+    importBusy: false,
+    scan: { stream: null, timer: null, detector: null, busy: false, detected: false, manual: false }
+  };
+
+  /* ---------------- Utilities ---------------- */
+  function icon(name, cls = 'icon') {
+    return `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+  const escapeAttr = escapeHtml;
+
+  function normalizeText(value) {
+    return String(value ?? '').normalize('NFKC').toLocaleLowerCase('zh-CN').trim();
+  }
+
+  function uid(prefix = 'id') {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return `${prefix}_${window.crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
+    }
+    return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
+  }
+
+  function safeId(value, prefix = 'id') {
+    const v = String(value ?? '');
+    return /^[A-Za-z0-9_-]{1,90}$/.test(v) ? v : uid(prefix);
+  }
+
+  function byteSize(value) {
+    try { return new Blob([value]).size; } catch (error) { return String(value).length * 2; }
+  }
+
+  function formatBytes(bytes) {
+    const n = Number(bytes) || 0;
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB`;
+    if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(n < 10 * 1024 * 1024 ? 1 : 0)} MB`;
+    return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
+  }
+
+  function formatDate(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return '—';
+    return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+  }
+
+  function formatDateTime(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return '—';
+    return new Intl.DateTimeFormat('zh-CN', {
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+    }).format(d);
+  }
+
+  function todayStamp() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  function cleanIsbn(raw) {
+    return String(raw ?? '').replace(/[^0-9Xx]/g, '').toUpperCase();
+  }
+
+  function validIsbn10(value) {
+    if (!/^\d{9}[\dX]$/.test(value)) return false;
+    let sum = 0;
+    for (let i = 0; i < 10; i++) {
+      const digit = value[i] === 'X' ? 10 : Number(value[i]);
+      sum += digit * (10 - i);
+    }
+    return sum % 11 === 0;
+  }
+
+  function isbn10To13(value) {
+    if (!validIsbn10(value)) return '';
+    const core = '978' + value.slice(0, 9);
+    let sum = 0;
+    for (let i = 0; i < 12; i++) sum += Number(core[i]) * (i % 2 === 0 ? 1 : 3);
+    return core + String((10 - (sum % 10)) % 10);
+  }
+
+  function validIsbn13(value) {
+    if (!/^\d{13}$/.test(value)) return false;
+    let sum = 0;
+    for (let i = 0; i < 13; i++) sum += Number(value[i]) * (i % 2 === 0 ? 1 : 3);
+    return sum % 10 === 0;
+  }
+
+  function normalizeIsbn(raw) {
+    const cleaned = cleanIsbn(raw);
+    if (validIsbn13(cleaned)) return cleaned;
+    if (validIsbn10(cleaned)) return isbn10To13(cleaned);
+    return cleaned;
+  }
+
+  function isbnIsValid(raw) {
+    const cleaned = cleanIsbn(raw);
+    return validIsbn13(cleaned) || validIsbn10(cleaned);
+  }
+
+  function coverHue(book) {
+    const source = `${book.title || ''}|${book.author || ''}|${book.id || ''}`;
+    let hash = 0;
+    for (let i = 0; i < source.length; i++) hash = (hash * 31 + source.charCodeAt(i)) >>> 0;
+    return hash % 360;
+  }
+
+  function coverArt(book, extraClass = '') {
+    const title = escapeHtml(book.title || '未命名');
+    const author = escapeHtml(book.author || '佚名');
+    return `<div class="cover-art ${extraClass}" style="--cover-h:${coverHue(book)}">
+      <span class="cover-mark">SHIYE LIBRARY</span>
+      <div><div class="cover-art-title">${title}</div><div class="cover-art-author">${author}</div></div>
+    </div>`;
+  }
+
+  function getLocation(id) {
+    return state.locations.find((loc) => loc.id === id) || null;
+  }
+
+  function locationPath(id) {
+    const loc = getLocation(id);
+    if (!loc) return '';
+    const parent = loc.parentId ? getLocation(loc.parentId) : null;
+    return parent ? `${parent.name} · ${loc.name}` : loc.name;
+  }
+
+  function sortedLocations() {
+    return [...state.locations].sort((a, b) => {
+      const sa = Number(a.sort) || 0;
+      const sb = Number(b.sort) || 0;
+      return sa - sb || String(a.name).localeCompare(String(b.name), 'zh-CN');
+    });
+  }
+
+  function topLocations() {
+    return sortedLocations().filter((loc) => !loc.parentId || !getLocation(loc.parentId));
+  }
+
+  function childLocations(parentId) {
+    return sortedLocations().filter((loc) => loc.parentId === parentId);
+  }
+
+  function isInLocation(bookLocationId, filterId) {
+    if (!filterId || filterId === 'all') return true;
+    if (bookLocationId === filterId) return true;
+    const loc = getLocation(bookLocationId);
+    return Boolean(loc && loc.parentId === filterId);
+  }
+
+  function iconList() { return ICONS; }
+
+  /* ---------------- IndexedDB covers ---------------- */
+  let dbPromise = null;
+  let dbBroken = false;
+  const memoryCovers = new Map();
+
+  function openDb() {
+    if (dbBroken) return Promise.reject(new Error('IndexedDB unavailable'));
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) {
+        dbBroken = true;
+        reject(new Error('IndexedDB unsupported'));
+        return;
+      }
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(COVER_STORE)) {
+          const store = db.createObjectStore(COVER_STORE, { keyPath: 'id' });
+          store.createIndex('createdAt', 'createdAt');
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => {
+        dbBroken = true;
+        reject(request.error || new Error('IndexedDB open failed'));
+      };
+    });
+    return dbPromise;
+  }
+
+  async function coverPut(record) {
+    if (dbBroken) {
+      memoryCovers.set(record.id, record);
+      return;
+    }
+    try {
+      const db = await openDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(COVER_STORE, 'readwrite');
+        tx.objectStore(COVER_STORE).put(record);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error('aborted'));
+      });
+    } catch (error) {
+      dbBroken = true;
+      memoryCovers.set(record.id, record);
+    }
+  }
+
+  async function coverGet(id) {
+    if (!id) return null;
+    if (dbBroken) return memoryCovers.get(id) || null;
+    try {
+      const db = await openDb();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(COVER_STORE, 'readonly');
+        const request = tx.objectStore(COVER_STORE).get(id);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+    } catch (error) {
+      dbBroken = true;
+      return memoryCovers.get(id) || null;
+    }
+  }
+
+  async function coverGetBlob(id) {
+    const record = await coverGet(id);
+    return record && record.blob ? record.blob : null;
+  }
+
+  async function coverDelete(id) {
+    if (!id) return;
+    if (dbBroken) {
+      memoryCovers.delete(id);
+      return;
+    }
+    try {
+      const db = await openDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(COVER_STORE, 'readwrite');
+        tx.objectStore(COVER_STORE).delete(id);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (error) {
+      dbBroken = true;
+      memoryCovers.delete(id);
+    }
+  }
+
+  async function coverAll() {
+    if (dbBroken) return Array.from(memoryCovers.values());
+    try {
+      const db = await openDb();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(COVER_STORE, 'readonly');
+        const request = tx.objectStore(COVER_STORE).getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+    } catch (error) {
+      dbBroken = true;
+      return Array.from(memoryCovers.values());
+    }
+  }
+
+  async function coverClear() {
+    memoryCovers.clear();
+    if (dbBroken) return;
+    try {
+      const db = await openDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(COVER_STORE, 'readwrite');
+        tx.objectStore(COVER_STORE).clear();
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (error) {
+      dbBroken = true;
+    }
+  }
+
+  async function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function dataUrlToBlob(dataUrl) {
+    const text = String(dataUrl || '');
+    if (!/^data:image\//i.test(text)) throw new Error('invalid image data');
+    const parts = text.split(',');
+    if (parts.length < 2) throw new Error('invalid data URL');
+    const head = parts[0];
+    const binary = atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const mimeMatch = head.match(/data:(.*?)(;|$)/);
+    return new Blob([bytes], { type: mimeMatch ? mimeMatch[1] : 'image/jpeg' });
+  }
+
+  /* ---------------- Persistence ---------------- */
+  function readJson(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      return parsed == null ? fallback : parsed;
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  function writeJson(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (error) {
+      toast('本地存储空间不足，请先导出备份并清理部分封面。', 'error', 5200);
+      return false;
+    }
+  }
+
+  function persistData() {
+    let ok = true;
+    if (!writeJson(K_BOOKS, state.books)) ok = false;
+    if (!writeJson(K_LOCATIONS, state.locations)) ok = false;
+    return ok;
+  }
+
+  function saveMeta() {
+    writeJson(K_META, state.meta);
+  }
+
+  function defaultLocations() {
+    const livingId = uid('loc');
+    const studyId = uid('loc');
+    return [
+      { id: livingId, name: '客厅书柜', parentId: null, sort: 1 },
+      { id: uid('loc'), name: '第 1 层', parentId: livingId, sort: 1 },
+      { id: uid('loc'), name: '第 2 层', parentId: livingId, sort: 2 },
+      { id: studyId, name: '书房书柜', parentId: null, sort: 2 },
+      { id: uid('loc'), name: '第 1 层', parentId: studyId, sort: 1 },
+      { id: uid('loc'), name: '第 2 层', parentId: studyId, sort: 2 }
+    ];
+  }
+
+  function sanitizeBook(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const title = String(raw.title || '').trim();
+    if (!title) return null;
+    return {
+      id: safeId(raw.id, 'book'),
+      isbn: normalizeIsbn(raw.isbn || ''),
+      title,
+      author: String(raw.author || '').trim(),
+      publisher: String(raw.publisher || '').trim(),
+      locationId: raw.locationId ? String(raw.locationId) : '',
+      coverId: raw.coverId ? safeId(raw.coverId, 'cover') : null,
+      note: String(raw.note || ''),
+      createdAt: Number(raw.createdAt) || Date.now(),
+      updatedAt: Number(raw.updatedAt) || Number(raw.createdAt) || Date.now()
+    };
+  }
+
+  function sanitizeLocation(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const name = String(raw.name || '').trim();
+    if (!name) return null;
+    return {
+      id: safeId(raw.id, 'loc'),
+      name,
+      parentId: raw.parentId ? String(raw.parentId) : null,
+      sort: Number(raw.sort) || 0
+    };
+  }
+
+  function loadData() {
+    const rawBooks = readJson(K_BOOKS, []);
+    const rawLocations = readJson(K_LOCATIONS, []);
+    state.books = Array.isArray(rawBooks) ? rawBooks.map(sanitizeBook).filter(Boolean) : [];
+    state.locations = Array.isArray(rawLocations) ? rawLocations.map(sanitizeLocation).filter(Boolean) : [];
+    state.meta = readJson(K_META, {});
+    if (!state.meta || typeof state.meta !== 'object') state.meta = {};
+
+    if (!state.meta.initialized) {
+      if (!state.books.length && !state.locations.length) state.locations = defaultLocations();
+      state.meta.initialized = true;
+      persistData();
+      saveMeta();
+    }
+
+    // Repair dangling parent ids so the two-level UI stays consistent.
+    const ids = new Set(state.locations.map((loc) => loc.id));
+    state.locations.forEach((loc) => {
+      if (loc.parentId && (!ids.has(loc.parentId) || loc.parentId === loc.id)) loc.parentId = null;
+    });
+    const parentMap = new Map(state.locations.map((loc) => [loc.id, loc.parentId]));
+    state.locations.forEach((loc) => {
+      if (loc.parentId && parentMap.get(loc.parentId)) loc.parentId = null;
+    });
+  }
+
+  /* ---------------- Toasts and modals ---------------- */
+  function toast(message, tone = 'default', duration = 3000) {
+    const stack = $('#toastStack');
+    if (!stack) return;
+    const el = document.createElement('div');
+    el.className = `toast ${tone}`;
+    const iconName = tone === 'error' ? 'alert' : tone === 'success' ? 'check' : tone === 'info' ? 'info' : 'check';
+    el.innerHTML = icon(iconName);
+    const text = document.createElement('span');
+    text.textContent = message;
+    el.appendChild(text);
+    stack.appendChild(el);
+    while (stack.children.length > 4) stack.firstElementChild.remove();
+    const remove = () => {
+      el.classList.add('hide');
+      setTimeout(() => el.remove(), 230);
+    };
+    setTimeout(remove, duration);
+    el.addEventListener('click', remove);
+  }
+
+  function syncBodyLock() {
+    const anyOpen = Boolean(document.querySelector('.modal.open'));
+    document.body.classList.toggle('no-scroll', anyOpen);
+  }
+
+  function openModal(el) {
+    if (!el) return;
+    el.classList.add('open');
+    el.setAttribute('aria-hidden', 'false');
+    syncBodyLock();
+  }
+
+  function closeModal(el) {
+    if (!el) return;
+    el.classList.remove('open');
+    el.setAttribute('aria-hidden', 'true');
+    if (el.id === 'scanModal') stopScanner(true);
+    if (el.id === 'bookModal') cleanupBookEditor();
+    if (el.id === 'confirmModal' && state.confirmResolver) {
+      const resolve = state.confirmResolver;
+      state.confirmResolver = null;
+      resolve(false);
+    }
+    syncBodyLock();
+  }
+
+  function closeTopModal() {
+    const open = $$('.modal.open');
+    if (!open.length) return;
+    closeModal(open[open.length - 1]);
+  }
+
+  function confirmDialog(options = {}) {
+    if (state.confirmResolver) {
+      const previous = state.confirmResolver;
+      state.confirmResolver = null;
+      previous(false);
+    }
+    const modal = $('#confirmModal');
+    $('#confirmTitle').textContent = options.title || '确认操作';
+    $('#confirmMessage').textContent = options.message || '';
+    const iconBox = $('#confirmIcon');
+    iconBox.classList.toggle('danger', options.tone === 'danger');
+    iconBox.innerHTML = icon(options.icon || (options.tone === 'danger' ? 'trash' : 'alert'));
+    const okBtn = $('#confirmOkBtn');
+    okBtn.textContent = options.confirmText || '确认';
+    okBtn.className = `btn ${options.tone === 'danger' ? 'btn-danger' : 'btn-primary'}`;
+    $('#confirmCancelBtn').textContent = options.cancelText || '取消';
+    openModal(modal);
+    return new Promise((resolve) => { state.confirmResolver = resolve; });
+  }
+
+  /* ---------------- Rendering: library ---------------- */
+  function queryTokens() {
+    const q = normalizeText(state.query);
+    return q ? q.split(/\s+/).filter(Boolean) : [];
+  }
+
+  function escapeRegExp(text) {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function highlight(text, tokens) {
+    const raw = String(text ?? '');
+    if (!tokens || !tokens.length) return escapeHtml(raw);
+    const pattern = new RegExp(tokens.map(escapeRegExp).join('|'), 'gi');
+    let result = '';
+    let last = 0;
+    let match;
+    while ((match = pattern.exec(raw))) {
+      if (match.index > last) result += escapeHtml(raw.slice(last, match.index));
+      result += `<mark>${escapeHtml(match[0])}</mark>`;
+      last = match.index + match[0].length;
+      if (match.index === pattern.lastIndex) pattern.lastIndex++;
+    }
+    result += escapeHtml(raw.slice(last));
+    return result;
+  }
+
+  function bookHaystack(book) {
+    return normalizeText([
+      book.title, book.author, book.publisher, book.isbn, book.note,
+      locationPath(book.locationId)
+    ].join(' '));
+  }
+
+  function filteredBooks() {
+    const tokens = queryTokens();
+    const filter = state.locationFilter;
+    let books = state.books.filter((book) => {
+      if (!isInLocation(book.locationId, filter)) return false;
+      if (!tokens.length) return true;
+      const hay = bookHaystack(book);
+      return tokens.every((token) => hay.includes(token));
+    });
+    if (state.sort === 'title') {
+      books.sort((a, b) => String(a.title).localeCompare(String(b.title), 'zh-CN', { numeric: true }));
+    } else if (state.sort === 'author') {
+      books.sort((a, b) => {
+        const aa = String(a.author || '');
+        const bb = String(b.author || '');
+        if (!aa && !bb) return 0;
+        if (!aa) return 1;
+        if (!bb) return -1;
+        return aa.localeCompare(bb, 'zh-CN', { numeric: true });
+      });
+    } else {
+      books.sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0));
+    }
+    return books;
+  }
+
+  function bookCard(book) {
+    const tokens = queryTokens();
+    const locPath = locationPath(book.locationId);
+    const coverImg = book.coverId
+      ? `<img class="cover-img" data-cover-id="${escapeAttr(book.coverId)}" alt="">`
+      : '';
+    return `<article class="book-card" data-action="open-book" data-id="${escapeAttr(book.id)}" tabindex="0" role="button" aria-label="查看《${escapeAttr(book.title)}》">
+      <div class="book-cover">
+        ${coverArt(book)}
+        ${coverImg}
+      </div>
+      <div class="book-info">
+        <h3 class="book-title">${highlight(book.title, tokens)}</h3>
+        <p class="book-author">${book.author ? highlight(book.author, tokens) : '未知作者'}</p>
+        <div class="book-foot">
+          <span class="book-loc">${icon('pin')}${locPath ? highlight(locPath, tokens) : '未归位'}</span>
+          ${book.isbn ? `<span class="book-isbn">${escapeHtml(book.isbn)}</span>` : ''}
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function renderLibrary() {
+    const books = filteredBooks();
+    const grid = $('#bookGrid');
+    const token = ++state.renderToken;
+    if (state.coverObserver) state.coverObserver.disconnect();
+
+    // 大结果集先渲染首屏，剩余卡片在后续帧补齐，保证输入后的即时反馈。
+    const cards = books.map(bookCard);
+    const FIRST_BATCH = 120;
+    const NEXT_BATCH = 180;
+    grid.innerHTML = cards.slice(0, FIRST_BATCH).join('');
+
+    if ('IntersectionObserver' in window) {
+      state.coverObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            state.coverObserver.unobserve(img);
+            hydrateCover(img);
+          }
+        });
+      }, { rootMargin: '240px 0px' });
+    }
+    const hydrateBatch = (from) => {
+      const imgs = $$('.cover-img[data-cover-id]', grid).slice(from);
+      if (state.coverObserver) imgs.forEach((img) => state.coverObserver.observe(img));
+      else imgs.forEach(hydrateCover);
+    };
+    hydrateBatch(0);
+
+    if (cards.length > FIRST_BATCH) {
+      let cursor = FIRST_BATCH;
+      const appendBatch = () => {
+        if (token !== state.renderToken) return;
+        const before = grid.children.length;
+        grid.insertAdjacentHTML('beforeend', cards.slice(cursor, cursor + NEXT_BATCH).join(''));
+        hydrateBatch(before);
+        cursor += NEXT_BATCH;
+        if (cursor < cards.length) requestAnimationFrame(appendBatch);
+      };
+      requestAnimationFrame(appendBatch);
+    }
+
+    const hasBooks = state.books.length > 0;
+    const hasResults = books.length > 0;
+    $('#emptyLibrary').hidden = hasBooks;
+    $('#emptySearch').hidden = !(hasBooks && !hasResults);
+    if (hasBooks && !hasResults) {
+      $('#emptySearchText').textContent = '换一个关键词试试，或清除当前的位置筛选。';
+    }
+
+    const query = state.query.trim();
+    const filterLoc = state.locationFilter !== 'all' ? getLocation(state.locationFilter) : null;
+    let html = '';
+    if (!hasBooks) {
+      html = '书库还没有藏书';
+    } else {
+      html = `共 <strong>${books.length}</strong> 本`;
+      if (query) html = `“${escapeHtml(query)}” 的搜索结果 · <strong>${books.length}</strong> 本`;
+      if (filterLoc) html += `<span class="filter-pill">${icon('pin')}${escapeHtml(filterLoc.name)}</span>`;
+    }
+    $('#resultsText').innerHTML = html;
+    $('#resetFiltersBtn').hidden = !query && state.locationFilter === 'all';
+    $('#clearSearchBtn').hidden = !query;
+    updateCounts();
+  }
+
+  function hydrateCover(img) {
+    if (!img || img.dataset.loading === '1' || img.classList.contains('loaded')) return;
+    const id = img.dataset.coverId;
+    if (!id) return;
+    img.dataset.loading = '1';
+    ensureCoverUrl(id).then((url) => {
+      if (!url || !img.isConnected) return;
+      img.onload = () => img.classList.add('loaded');
+      img.onerror = () => { img.dataset.loading = ''; };
+      img.src = url;
+    }).catch(() => { img.dataset.loading = ''; });
+  }
+
+  async function ensureCoverUrl(id) {
+    if (state.coverUrls.has(id)) return state.coverUrls.get(id);
+    const blob = await coverGetBlob(id);
+    if (!blob) return null;
+    const url = URL.createObjectURL(blob);
+    state.coverUrls.set(id, url);
+    return url;
+  }
+
+  function revokeCoverUrl(id) {
+    const url = state.coverUrls.get(id);
+    if (url) {
+      URL.revokeObjectURL(url);
+      state.coverUrls.delete(id);
+    }
+  }
+
+  async function loadCoverInto(img, id) {
+    if (!img || !id) return;
+    const url = await ensureCoverUrl(id);
+    if (!url) return;
+    img.onload = () => img.classList.add('loaded');
+    img.src = url;
+  }
+
+  /* ---------------- Rendering: location filters ---------------- */
+  function refreshLocationFilter() {
+    const select = $('#locationFilter');
+    const current = state.locationFilter;
+    const tops = topLocations();
+    let html = `<option value="all">全部位置</option>`;
+    tops.forEach((top) => {
+      const children = childLocations(top.id);
+      html += `<optgroup label="${escapeAttr(top.name)}">`;
+      html += `<option value="${escapeAttr(top.id)}">${escapeHtml(top.name)} · 全部层位</option>`;
+      children.forEach((child) => {
+        html += `<option value="${escapeAttr(child.id)}">　${escapeHtml(child.name)}</option>`;
+      });
+      html += '</optgroup>';
+    });
+    select.innerHTML = html;
+    if (current !== 'all' && getLocation(current)) select.value = current;
+    else state.locationFilter = 'all';
+    select.value = state.locationFilter;
+  }
+
+  function refreshBookLocationSelect(preferredId = '') {
+    const select = $('#bookLocation');
+    const locs = sortedLocations();
+    if (!locs.length) {
+      select.innerHTML = `<option value="">请先在「位置管理」创建存放位置</option>`;
+      select.value = '';
+      return;
+    }
+    let html = `<option value="">请选择存放位置</option>`;
+    topLocations().forEach((top) => {
+      const children = childLocations(top.id);
+      html += `<optgroup label="${escapeAttr(top.name)}">`;
+      html += `<option value="${escapeAttr(top.id)}">${escapeHtml(top.name)}（货架整体）</option>`;
+      children.forEach((child) => {
+        html += `<option value="${escapeAttr(child.id)}">${escapeHtml(child.name)}</option>`;
+      });
+      html += '</optgroup>';
+    });
+    select.innerHTML = html;
+    const wanted = preferredId && getLocation(preferredId) ? preferredId : '';
+    select.value = wanted;
+  }
+
+  /* ---------------- Rendering: locations ---------------- */
+  function renderLocations() {
+    const grid = $('#shelfGrid');
+    const empty = $('#emptyLocations');
+    const tops = topLocations();
+    if (!tops.length) {
+      grid.innerHTML = '';
+      empty.hidden = false;
+      return;
+    }
+    empty.hidden = true;
+    grid.innerHTML = tops.map((top) => {
+      const children = childLocations(top.id);
+      const direct = state.books.filter((book) => book.locationId === top.id).length;
+      const childCount = children.reduce((sum, child) => sum + state.books.filter((book) => book.locationId === child.id).length, 0);
+      const total = direct + childCount;
+      const rows = children.map((child) => {
+        const count = state.books.filter((book) => book.locationId === child.id).length;
+        return `<div class="level-row">
+          <span class="level-line"></span>
+          <div class="level-main">
+            <span class="level-name">${escapeHtml(child.name)}</span>
+            <span class="level-count" title="${count} 本">${count}</span>
+          </div>
+          <div class="level-actions">
+            <button class="icon-btn" type="button" data-action="edit-location" data-id="${escapeAttr(child.id)}" aria-label="编辑 ${escapeAttr(child.name)}">${icon('edit')}</button>
+            <button class="icon-btn danger" type="button" data-action="delete-location" data-id="${escapeAttr(child.id)}" aria-label="删除 ${escapeAttr(child.name)}">${icon('trash')}</button>
+          </div>
+        </div>`;
+      }).join('');
+
+      return `<section class="shelf-card">
+        <div class="shelf-head">
+          <span class="shelf-mark">${icon('shelf')}</span>
+          <div class="shelf-title-wrap">
+            <h2 class="shelf-title">${escapeHtml(top.name)}</h2>
+            <p class="shelf-sub">${children.length ? `${children.length} 个层位 · ` : ''}共 ${total} 本</p>
+          </div>
+          <div class="shelf-actions">
+            <button class="icon-btn" type="button" data-action="edit-location" data-id="${escapeAttr(top.id)}" aria-label="编辑 ${escapeAttr(top.name)}">${icon('edit')}</button>
+            <button class="icon-btn danger" type="button" data-action="delete-location" data-id="${escapeAttr(top.id)}" aria-label="删除 ${escapeAttr(top.name)}">${icon('trash')}</button>
+          </div>
+        </div>
+        <div class="levels">
+          ${rows}
+          <button class="add-level-row" type="button" data-action="add-location" data-parent="${escapeAttr(top.id)}">${icon('plus')}添加层位</button>
+        </div>
+        <div class="shelf-foot">${direct ? `货架整体存放 ${direct} 本` : '可直接存放，也可细分到层位'}${total && !direct ? ` · 下方层位共 ${childCount} 本` : ''}</div>
+      </section>`;
+    }).join('');
+  }
+
+  /* ---------------- Counts and storage ---------------- */
+  function updateCounts() {
+    const books = state.books.length;
+    const locations = state.locations.length;
+    const covers = state.books.filter((book) => book.coverId).length;
+    $('#sideBookCount').textContent = books;
+    $('#sideLocationCount').textContent = locations;
+    $('#heroBookCount').textContent = books;
+    $('#heroLocationCount').textContent = locations;
+    $('#heroCoverCount').textContent = covers;
+    $('#dataBookCount').textContent = books;
+    $('#dataLocationCount').textContent = locations;
+    $('#dataCoverCount').textContent = covers;
+  }
+
+  let storageTimer = null;
+  function scheduleStorageRefresh() {
+    clearTimeout(storageTimer);
+    storageTimer = setTimeout(updateStorage, 120);
+  }
+
+  async function updateStorage() {
+    const seq = ++state.storageSeq;
+    const covers = await coverAll();
+    if (seq !== state.storageSeq) return;
+    const localBytes = byteSize(JSON.stringify(state.books)) + byteSize(JSON.stringify(state.locations)) + byteSize(JSON.stringify(state.meta));
+    const coverBytes = covers.reduce((sum, item) => sum + (Number(item.size) || 0), 0);
+    const usage = localBytes + coverBytes;
+    let quota = 0;
+    if (navigator.storage && typeof navigator.storage.estimate === 'function') {
+      try {
+        const estimate = await navigator.storage.estimate();
+        quota = Number(estimate.quota) || 0;
+      } catch (error) { quota = 0; }
+    }
+    if (seq !== state.storageSeq) return;
+
+    const pct = quota ? Math.min(100, (usage / quota) * 100) : 0;
+    $('#dataUsage').textContent = formatBytes(usage);
+    $('#dataQuotaText').textContent = '本机占用';
+    $('#dataUsagePct').textContent = quota ? `${pct < 1 ? pct.toFixed(1) : Math.round(pct)}%` : '仅本地';
+    $('#dataQuota').textContent = quota ? `浏览器配额约 ${formatBytes(quota)}` : '浏览器配额暂不可用';
+    $('#dataUsageBar').style.width = `${Math.max(2, Math.min(100, pct))}%`;
+    $('#sideStorageText').textContent = formatBytes(usage);
+    $('#sideStorageBar').style.width = `${Math.max(2, Math.min(100, pct))}%`;
+    $('#dataCoverCount').textContent = covers.length;
+
+    const localStorageNearLimit = localBytes > 4.3 * 1024 * 1024;
+    const nearLimit = (quota > 0 && pct > 80) || localStorageNearLimit;
+    const advice = $('#storageAdvice');
+    advice.classList.toggle('warn', nearLimit);
+    advice.textContent = nearLimit
+      ? '存储空间接近上限。建议先导出备份，再删除不再需要的封面图片。'
+      : '封面会在保存前自动压缩到长边 800px 以内，兼顾清晰度与容量。';
+    if (nearLimit && !state.storageWarned) {
+      state.storageWarned = true;
+      toast('本地存储接近上限，建议导出备份并清理部分封面。', 'error', 6000);
+    }
+
+    const last = Number(state.meta.lastBackupAt) || 0;
+    $('#lastBackupText').textContent = last ? `上次备份：${formatDateTime(last)}` : '还没有导出过备份';
+  }
+
+  function refreshUI() {
+    renderLibrary();
+    renderLocations();
+    refreshLocationFilter();
+    updateCounts();
+    scheduleStorageRefresh();
+  }
+
+  /* ---------------- View navigation ---------------- */
+  function switchView(view) {
+    if (!['library', 'locations', 'data'].includes(view)) return;
+    state.view = view;
+    $$('.view').forEach((section) => section.classList.toggle('active', section.id === `view-${view}`));
+    $$('[data-nav]').forEach((button) => button.classList.toggle('active', button.dataset.nav === view));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    if (view === 'locations') renderLocations();
+    if (view === 'data') {
+      updateCounts();
+      updateStorage();
+    }
+  }
+
+  /* ---------------- Book editor ---------------- */
+  function cleanupBookEditor() {
+    state.editor.lookupToken++;
+    if (state.editor.pendingUrl) URL.revokeObjectURL(state.editor.pendingUrl);
+    state.editor.pendingUrl = null;
+    state.editor.pendingBlob = null;
+    state.editor.removeCover = false;
+    state.editor.existingCoverId = null;
+    state.editor.bookId = null;
+    state.editor.lastLookupIsbn = '';
+    const preview = $('#coverPreview');
+    const img = $('#coverPreviewImg');
+    preview.classList.remove('has-image');
+    img.removeAttribute('src');
+    $('#removeCoverBtn').hidden = true;
+  }
+
+  function setCoverPreviewBlob(blob) {
+    if (state.editor.pendingUrl) URL.revokeObjectURL(state.editor.pendingUrl);
+    state.editor.pendingBlob = blob;
+    state.editor.removeCover = false;
+    state.editor.pendingUrl = URL.createObjectURL(blob);
+    const preview = $('#coverPreview');
+    const img = $('#coverPreviewImg');
+    img.src = state.editor.pendingUrl;
+    preview.classList.add('has-image');
+    $('#removeCoverBtn').hidden = false;
+  }
+
+  async function refreshCoverPreview() {
+    const token = (state.editor.coverToken || 0) + 1;
+    state.editor.coverToken = token;
+    const preview = $('#coverPreview');
+    const img = $('#coverPreviewImg');
+    if (state.editor.pendingUrl) {
+      img.src = state.editor.pendingUrl;
+      preview.classList.add('has-image');
+      $('#removeCoverBtn').hidden = false;
+      return;
+    }
+    if (state.editor.removeCover || !state.editor.existingCoverId) {
+      img.removeAttribute('src');
+      preview.classList.remove('has-image');
+      $('#removeCoverBtn').hidden = true;
+      return;
+    }
+    const url = await ensureCoverUrl(state.editor.existingCoverId);
+    if (token !== state.editor.coverToken) return;
+    if (url) {
+      img.src = url;
+      preview.classList.add('has-image');
+      $('#removeCoverBtn').hidden = false;
+    } else {
+      img.removeAttribute('src');
+      preview.classList.remove('has-image');
+      $('#removeCoverBtn').hidden = true;
+    }
+  }
+
+  function removePendingCover() {
+    if (state.editor.pendingUrl) URL.revokeObjectURL(state.editor.pendingUrl);
+    state.editor.pendingUrl = null;
+    state.editor.pendingBlob = null;
+    state.editor.removeCover = true;
+    state.editor.coverToken = (state.editor.coverToken || 0) + 1;
+    $('#coverPreviewImg').removeAttribute('src');
+    $('#coverPreview').classList.remove('has-image');
+    $('#removeCoverBtn').hidden = true;
+  }
+
+  function resetBookFormState() {
+    cleanupBookEditor();
+    $('#bookForm').reset();
+    ['#bookTitle', '#bookIsbn', '#bookAuthor', '#bookPublisher', '#bookLocation', '#bookNote'].forEach((selector) => {
+      $(selector).classList.remove('invalid');
+    });
+    setLookupHint('扫描条码，或输入 ISBN 后按回车联网补全书名、作者与出版社。');
+  }
+
+  function openBookModal(bookId = null) {
+    if ($('#detailModal').classList.contains('open')) closeModal($('#detailModal'));
+    resetBookFormState();
+    const book = bookId ? state.books.find((item) => item.id === bookId) : null;
+    state.editor.bookId = book ? book.id : null;
+    state.editor.existingCoverId = book && book.coverId ? book.coverId : null;
+    state.editor.lastLookupIsbn = book && book.isbn ? book.isbn : '';
+
+    $('#bookModalTitle').textContent = book ? '编辑图书' : '新增图书';
+    $('#bookModalEyebrow').textContent = book ? 'EDIT BOOK' : 'NEW BOOK';
+    $('#saveBookBtn').textContent = book ? '保存修改' : '保存图书';
+
+    if (book) {
+      $('#bookIsbn').value = book.isbn || '';
+      $('#bookTitle').value = book.title || '';
+      $('#bookAuthor').value = book.author || '';
+      $('#bookPublisher').value = book.publisher || '';
+      $('#bookNote').value = book.note || '';
+      refreshBookLocationSelect(book.locationId);
+      $('#bookLocation').classList.remove('invalid');
+    } else {
+      const locations = sortedLocations();
+      const preferred = locations.find((loc) => loc.parentId) || locations[0] || null;
+      refreshBookLocationSelect(preferred ? preferred.id : '');
+    }
+
+    refreshCoverPreview();
+    openModal($('#bookModal'));
+    if (!window.matchMedia('(max-width: 640px)').matches) {
+      setTimeout(() => {
+        if (book) $('#bookTitle').focus();
+        else $('#bookIsbn').focus();
+      }, 220);
+    }
+  }
+
+  function compressImage(file, maxEdge = 800) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\//i.test(file.type)) {
+        reject(new Error('请选择图片文件'));
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+          const width = Math.max(1, Math.round((img.naturalWidth || 1) * scale));
+          const height = Math.max(1, Math.round((img.naturalHeight || 1) * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#f8f5ed';
+          ctx.fillRect(0, 0, width, height);
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+          const qualities = [0.78, 0.62, 0.46];
+          const tryQuality = (index) => {
+            canvas.toBlob((blob) => {
+              URL.revokeObjectURL(url);
+              if (!blob) {
+                reject(new Error('图片处理失败'));
+                return;
+              }
+              if ((blob.size <= 380 * 1024 || index >= qualities.length - 1)) {
+                resolve(blob);
+              } else {
+                tryQuality(index + 1);
+              }
+            }, 'image/jpeg', qualities[index]);
+          };
+          tryQuality(0);
+        } catch (error) {
+          URL.revokeObjectURL(url);
+          reject(error);
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('无法读取图片'));
+      };
+      img.src = url;
+    });
+  }
+
+  async function handleCoverFile(file) {
+    if (!file) return;
+    const cameraBtn = $('#cameraBtn');
+    const albumBtn = $('#albumBtn');
+    cameraBtn.disabled = true;
+    albumBtn.disabled = true;
+    try {
+      const blob = await compressImage(file, 800);
+      setCoverPreviewBlob(blob);
+      toast('封面已压缩并准备好保存。', 'success', 1800);
+    } catch (error) {
+      toast(error.message || '封面处理失败，请换一张图片。', 'error');
+    } finally {
+      cameraBtn.disabled = false;
+      albumBtn.disabled = false;
+      $('#cameraInput').value = '';
+      $('#albumInput').value = '';
+    }
+  }
+
+  function findDuplicateIsbn(isbn, exceptId) {
+    const normalized = normalizeIsbn(isbn);
+    if (!normalized) return null;
+    return state.books.find((book) => book.id !== exceptId && book.isbn === normalized) || null;
+  }
+
+  function markInvalid(selector, message) {
+    const field = $(selector);
+    if (field) field.classList.add('invalid');
+    if (message) toast(message, 'error');
+  }
+
+  async function saveBook() {
+    const titleInput = $('#bookTitle');
+    const isbnInput = $('#bookIsbn');
+    const locationSelect = $('#bookLocation');
+    ['#bookTitle', '#bookIsbn', '#bookLocation'].forEach((selector) => $(selector).classList.remove('invalid'));
+    const title = titleInput.value.trim();
+    if (!title) {
+      markInvalid('#bookTitle', '请填写书名。');
+      titleInput.focus();
+      return;
+    }
+    if (!locationSelect.value || !getLocation(locationSelect.value)) {
+      markInvalid('#bookLocation', '请选择图书的存放位置。');
+      locationSelect.focus();
+      return;
+    }
+    const rawIsbn = isbnInput.value.trim();
+    if (rawIsbn && !isbnIsValid(rawIsbn)) {
+      markInvalid('#bookIsbn', 'ISBN 校验未通过，请检查数字是否完整。');
+      setLookupHint('ISBN 校验未通过。可留空，或核对后重新输入。', 'error');
+      isbnInput.focus();
+      return;
+    }
+    const isbn = rawIsbn ? normalizeIsbn(rawIsbn) : '';
+    const duplicate = isbn ? findDuplicateIsbn(isbn, state.editor.bookId) : null;
+    if (duplicate) {
+      const proceed = await confirmDialog({
+        title: '发现重复 ISBN',
+        message: `书库中已有《${duplicate.title}》（${locationPath(duplicate.locationId) || '未归位'}）。\n仍要添加一本相同 ISBN 的书吗？`,
+        confirmText: '仍然添加',
+        icon: 'alert'
+      });
+      if (!proceed) return;
+    }
+
+    const existing = state.editor.bookId ? state.books.find((book) => book.id === state.editor.bookId) : null;
+    const now = Date.now();
+    const previous = existing ? { ...existing } : null;
+    let coverId = existing ? existing.coverId || null : null;
+    let newCoverId = null;
+    const oldCoverId = existing ? existing.coverId || null : null;
+
+    if (state.editor.pendingBlob) {
+      newCoverId = uid('cover');
+      await coverPut({
+        id: newCoverId,
+        blob: state.editor.pendingBlob,
+        type: state.editor.pendingBlob.type || 'image/jpeg',
+        size: state.editor.pendingBlob.size || 0,
+        createdAt: now
+      });
+      coverId = newCoverId;
+    } else if (state.editor.removeCover) {
+      coverId = null;
+    }
+
+    const payload = {
+      id: existing ? existing.id : uid('book'),
+      isbn,
+      title,
+      author: $('#bookAuthor').value.trim(),
+      publisher: $('#bookPublisher').value.trim(),
+      locationId: locationSelect.value,
+      coverId,
+      note: $('#bookNote').value.trim(),
+      createdAt: existing ? existing.createdAt : now,
+      updatedAt: now
+    };
+
+    if (existing) Object.assign(existing, payload);
+    else state.books.unshift(payload);
+
+    const saved = persistData();
+    if (!saved) {
+      if (existing && previous) Object.assign(existing, previous);
+      else state.books = state.books.filter((book) => book.id !== payload.id);
+      if (newCoverId) await coverDelete(newCoverId);
+      return;
+    }
+
+    if (oldCoverId && oldCoverId !== coverId) {
+      await coverDelete(oldCoverId);
+      revokeCoverUrl(oldCoverId);
+    }
+    state.editor.lookupToken++;
+    closeModal($('#bookModal'));
+    refreshUI();
+    toast(existing ? '图书信息已更新。' : '图书已加入书库。', 'success');
+  }
+
+  /* ---------------- Book detail ---------------- */
+  function openDetail(bookId) {
+    const book = state.books.find((item) => item.id === bookId);
+    if (!book) return;
+    const path = locationPath(book.locationId);
+    const note = book.note
+      ? `<div class="detail-note"><p class="detail-note-label">${icon('edit')}备注</p><div>${escapeHtml(book.note)}</div></div>`
+      : `<div class="detail-note"><p class="detail-note-label">${icon('edit')}备注</p><div class="detail-empty-note">暂无备注</div></div>`;
+    $('#detailContent').innerHTML = `<div class="detail-layout">
+      <div class="detail-cover-wrap">
+        <div class="detail-cover">
+          ${coverArt(book)}
+          ${book.coverId ? `<img class="cover-img" id="detailCoverImg" alt="《${escapeAttr(book.title)}》封面">` : ''}
+        </div>
+      </div>
+      <div>
+        <div class="detail-heading">
+          <h3 class="detail-title">${escapeHtml(book.title)}</h3>
+          <p class="detail-author">${book.author ? escapeHtml(book.author) : '未知作者'}</p>
+          <div class="detail-tags">
+            <span class="tag">${icon('pin')}${path ? escapeHtml(path) : '未归位'}</span>
+            ${book.coverId ? `<span class="tag">${icon('image')}已记录封面</span>` : ''}
+          </div>
+        </div>
+        <dl class="detail-list">
+          <div class="detail-row"><dt>ISBN</dt><dd>${book.isbn ? escapeHtml(book.isbn) : '—'}</dd></div>
+          <div class="detail-row"><dt>出版社</dt><dd>${book.publisher ? escapeHtml(book.publisher) : '—'}</dd></div>
+          <div class="detail-row"><dt>存放位置</dt><dd>${path ? escapeHtml(path) : '未归位'}</dd></div>
+          <div class="detail-row"><dt>加入时间</dt><dd>${formatDate(book.createdAt)}</dd></div>
+          <div class="detail-row"><dt>最近更新</dt><dd>${formatDate(book.updatedAt)}</dd></div>
+        </dl>
+        ${note}
+      </div>
+    </div>`;
+    $('#detailActions').innerHTML = `
+      <button class="btn btn-danger-soft" type="button" data-action="delete-book" data-id="${escapeAttr(book.id)}">${icon('trash')}删除</button>
+      <span class="footer-info">${formatDateTime(book.createdAt)} 录入</span>
+      <button class="btn btn-primary" type="button" data-action="edit-book" data-id="${escapeAttr(book.id)}">${icon('edit')}编辑图书</button>`;
+    openModal($('#detailModal'));
+    if (book.coverId) loadCoverInto($('#detailCoverImg'), book.coverId);
+  }
+
+  async function deleteBook(bookId) {
+    const book = state.books.find((item) => item.id === bookId);
+    if (!book) return;
+    const ok = await confirmDialog({
+      title: '删除这本书？',
+      message: `将删除《${book.title}》及其封面，位置信息不会受到影响。此操作不可撤销。`,
+      confirmText: '删除图书',
+      tone: 'danger'
+    });
+    if (!ok) return;
+    const snapshot = state.books.slice();
+    state.books = state.books.filter((item) => item.id !== bookId);
+    if (!persistData()) {
+      state.books = snapshot;
+      return;
+    }
+    if (book.coverId) {
+      await coverDelete(book.coverId);
+      revokeCoverUrl(book.coverId);
+    }
+    closeModal($('#detailModal'));
+    refreshUI();
+    toast('图书已删除。', 'success');
+  }
+
+  /* ---------------- Location editor ---------------- */
+  function openLocationModal(options = {}) {
+    const mod = state.locationEditor;
+    mod.id = options.id || null;
+    mod.parentId = options.parentId || null;
+    mod.fromBook = Boolean(options.fromBook);
+    const loc = mod.id ? getLocation(mod.id) : null;
+    const form = $('#locationForm');
+    form.reset();
+    $('#locationError').hidden = true;
+    $('#locationName').classList.remove('invalid');
+    $('#locationModalTitle').textContent = loc ? '编辑位置' : (mod.parentId ? '新增层位' : '新增货架');
+    if (loc) {
+      $('#locationName').value = loc.name;
+      mod.parentId = loc.parentId || null;
+    }
+
+    const parentSelect = $('#locationParent');
+    const hasChildren = loc ? childLocations(loc.id).length > 0 : false;
+    let html = `<option value="">作为一级货架（无上级）</option>`;
+    topLocations().forEach((top) => {
+      if (loc && top.id === loc.id) return;
+      html += `<option value="${escapeAttr(top.id)}">${escapeHtml(top.name)} 的层位</option>`;
+    });
+    parentSelect.innerHTML = html;
+    parentSelect.disabled = hasChildren;
+    parentSelect.value = mod.parentId || '';
+    parentSelect.title = hasChildren ? '该货架已有层位，不能再改为其他货架的层位' : '';
+    openModal($('#locationModal'));
+    setTimeout(() => $('#locationName').focus(), 180);
+  }
+
+  async function saveLocation() {
+    const name = $('#locationName').value.trim();
+    const error = $('#locationError');
+    $('#locationName').classList.remove('invalid');
+    if (!name) {
+      error.textContent = '请填写位置名称。';
+      error.hidden = false;
+      $('#locationName').classList.add('invalid');
+      return;
+    }
+    let parentId = $('#locationParent').value || null;
+    if (parentId && !getLocation(parentId)) parentId = null;
+    const editing = state.locationEditor.id ? getLocation(state.locationEditor.id) : null;
+    if (editing && childLocations(editing.id).length && parentId) {
+      error.textContent = '该货架下已有层位，不能改为其他货架的层位。';
+      error.hidden = false;
+      return;
+    }
+    const duplicate = state.locations.find((loc) =>
+      loc.id !== (editing ? editing.id : '') &&
+      (loc.parentId || null) === parentId &&
+      normalizeText(loc.name) === normalizeText(name)
+    );
+    if (duplicate) {
+      error.textContent = '同一层级下已有同名位置，请换一个名称。';
+      error.hidden = false;
+      $('#locationName').classList.add('invalid');
+      return;
+    }
+
+    let savedId;
+    if (editing) {
+      const previous = { ...editing };
+      editing.name = name;
+      editing.parentId = parentId;
+      savedId = editing.id;
+      if (!persistData()) {
+        Object.assign(editing, previous);
+        return;
+      }
+    } else {
+      const siblings = parentId ? childLocations(parentId) : topLocations();
+      const maxSort = siblings.reduce((max, loc) => Math.max(max, Number(loc.sort) || 0), 0);
+      const created = { id: uid('loc'), name, parentId, sort: maxSort + 1 };
+      state.locations.push(created);
+      savedId = created.id;
+      if (!persistData()) {
+        state.locations = state.locations.filter((loc) => loc.id !== created.id);
+        return;
+      }
+    }
+    closeModal($('#locationModal'));
+    const bookModalOpen = $('#bookModal').classList.contains('open');
+    const currentBookLocation = $('#bookLocation').value;
+    refreshUI();
+    if (bookModalOpen) refreshBookLocationSelect(state.locationEditor.fromBook ? savedId : currentBookLocation);
+    toast(editing ? '位置已更新。' : '位置已添加。', 'success');
+  }
+
+  function openMigrateDialog(locationId) {
+    const loc = getLocation(locationId);
+    if (!loc) return;
+    const books = state.books.filter((book) => book.locationId === locationId);
+    const targets = sortedLocations().filter((item) => item.id !== locationId);
+    if (!targets.length) {
+      toast('这是唯一的位置。请先新建一个位置，再删除当前位置。', 'error', 4800);
+      return;
+    }
+    state.migrateId = locationId;
+    $('#migrateMessage').textContent = `「${locationPath(locationId)}」还有 ${books.length} 本图书。请选择一个新位置安置它们，再删除该位置。`;
+    $('#migrateTarget').innerHTML = targets.map((target) =>
+      `<option value="${escapeAttr(target.id)}">${escapeHtml(locationPath(target.id))}</option>`
+    ).join('');
+    openModal($('#migrateModal'));
+  }
+
+  async function confirmMigrate() {
+    const locationId = state.migrateId;
+    const targetId = $('#migrateTarget').value;
+    const loc = getLocation(locationId);
+    const target = getLocation(targetId);
+    if (!loc || !target) {
+      toast('请选择一个有效的目标位置。', 'error');
+      return;
+    }
+    const affected = state.books.filter((book) => book.locationId === locationId);
+    const snapshotBooks = state.books.map((book) => ({ ...book }));
+    const snapshotLocations = state.locations.map((item) => ({ ...item }));
+    affected.forEach((book) => {
+      book.locationId = targetId;
+      book.updatedAt = Date.now();
+    });
+    state.locations = state.locations.filter((item) => item.id !== locationId);
+    if (!persistData()) {
+      state.books = snapshotBooks;
+      state.locations = snapshotLocations;
+      return;
+    }
+    closeModal($('#migrateModal'));
+    state.migrateId = null;
+    refreshUI();
+    toast(`${affected.length} 本书已迁移至「${locationPath(targetId)}」。`, 'success', 3800);
+  }
+
+  async function requestDeleteLocation(locationId) {
+    const loc = getLocation(locationId);
+    if (!loc) return;
+    if (childLocations(locationId).length) {
+      toast('该货架下还有层位。请先删除层位，再删除货架。', 'error', 4200);
+      return;
+    }
+    const linked = state.books.filter((book) => book.locationId === locationId);
+    if (linked.length) {
+      openMigrateDialog(locationId);
+      return;
+    }
+    const ok = await confirmDialog({
+      title: '删除这个位置？',
+      message: `将删除「${locationPath(locationId)}」。当前没有图书记录在此位置。`,
+      confirmText: '删除位置',
+      tone: 'danger'
+    });
+    if (!ok) return;
+    const snapshot = state.locations.slice();
+    state.locations = state.locations.filter((item) => item.id !== locationId);
+    if (!persistData()) {
+      state.locations = snapshot;
+      return;
+    }
+    refreshUI();
+    toast('位置已删除。', 'success');
+  }
+
+
+  /* ---------------- ISBN metadata ---------------- */
+  function setLookupHint(message, tone = '', loading = false) {
+    const hint = $('#lookupHint');
+    hint.className = `hint${tone ? ' ' + tone : ''}`;
+    hint.innerHTML = `${loading ? '<span class="spinner"></span>' : ''}<span>${escapeHtml(message)}</span>`;
+  }
+
+  async function fetchJson(url, timeout = 6500) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: { Accept: 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function cleanMetaText(value, max = 240) {
+    return String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
+  }
+
+  async function lookupIsbnMetadata(isbn) {
+    const googleTask = (async () => {
+      const data = await fetchJson(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}&maxResults=1`);
+      const info = data && data.items && data.items[0] && data.items[0].volumeInfo;
+      if (!info || !info.title) return null;
+      return {
+        title: cleanMetaText(info.title),
+        author: cleanMetaText(Array.isArray(info.authors) ? info.authors.join(' / ') : ''),
+        publisher: cleanMetaText(info.publisher)
+      };
+    })().catch(() => null);
+
+    const openLibraryTask = (async () => {
+      const data = await fetchJson(`https://openlibrary.org/api/books?bibkeys=ISBN:${encodeURIComponent(isbn)}&format=json&jscmd=data`);
+      if (!data) return null;
+      const item = data[`ISBN:${isbn}`] || Object.values(data)[0];
+      if (!item || !item.title) return null;
+      const authors = Array.isArray(item.authors) ? item.authors.map((author) => author && author.name).filter(Boolean) : [];
+      const publishers = Array.isArray(item.publishers) ? item.publishers.map((publisher) => publisher && publisher.name).filter(Boolean) : [];
+      return {
+        title: cleanMetaText(item.title),
+        author: cleanMetaText(authors.join(' / ')),
+        publisher: cleanMetaText(publishers.join(' / '))
+      };
+    })().catch(() => null);
+
+    const results = await Promise.all([googleTask, openLibraryTask]);
+    return results.find((item) => item && item.title) || null;
+  }
+
+  async function lookupForEditor(rawIsbn) {
+    const cleaned = cleanIsbn(rawIsbn);
+    if (!cleaned) {
+      setLookupHint('请输入 ISBN，或直接手动填写图书信息。');
+      return;
+    }
+    if (!isbnIsValid(cleaned)) {
+      setLookupHint('ISBN 格式不正确，请检查是否为 10 位或 13 位。', 'error');
+      return;
+    }
+    const isbn = normalizeIsbn(cleaned);
+    $('#bookIsbn').value = isbn;
+    state.editor.lastLookupIsbn = isbn;
+    const token = ++state.editor.lookupToken;
+    setLookupHint('正在联网查询书名、作者与出版社…', '', true);
+    let meta = null;
+    try {
+      meta = await lookupIsbnMetadata(isbn);
+    } catch (error) {
+      meta = null;
+    }
+    if (token !== state.editor.lookupToken) return;
+    if (!meta) {
+      if (navigator.onLine === false) {
+        setLookupHint('当前离线，无法联网查询。可继续手动填写并保存。', 'error');
+      } else {
+        setLookupHint('未查询到书目信息，请手动填写。保存不受影响。', 'error');
+      }
+      return;
+    }
+    if (!$('#bookTitle').value.trim() && meta.title) $('#bookTitle').value = meta.title;
+    if (!$('#bookAuthor').value.trim() && meta.author) $('#bookAuthor').value = meta.author;
+    if (!$('#bookPublisher').value.trim() && meta.publisher) $('#bookPublisher').value = meta.publisher;
+    setLookupHint('已获取书目信息，可继续核对或补充。', 'success');
+  }
+
+  /* ---------------- Barcode scanner ---------------- */
+  function setScanStatus(message, tone = '') {
+    const el = $('#scanStatus');
+    el.textContent = message;
+    el.className = `scan-status${tone ? ' ' + tone : ''}`;
+  }
+
+  function focusManualIsbn() {
+    const input = $('#scanManualIsbn');
+    if (!input) return;
+    input.focus({ preventScroll: true });
+    input.select();
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function useManualFallback(message) {
+    state.scan.manual = true;
+    if (message) setScanStatus(message, 'error');
+    focusManualIsbn();
+  }
+
+  function stopScanner(reset = true) {
+    if (state.scan.timer) clearInterval(state.scan.timer);
+    state.scan.timer = null;
+    if (state.scan.stream) {
+      state.scan.stream.getTracks().forEach((track) => track.stop());
+      state.scan.stream = null;
+    }
+    const video = $('#scanVideo');
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+      video.classList.remove('active');
+    }
+    const placeholder = $('#scanPlaceholder');
+    if (placeholder) placeholder.hidden = false;
+    state.scan.detector = null;
+    state.scan.busy = false;
+    if (reset) {
+      state.scan.detected = false;
+      const text = placeholder ? placeholder.querySelector('span') : null;
+      if (text) text.textContent = '正在准备摄像头…';
+      setScanStatus('请将书背面的 ISBN 条码放入取景框');
+    }
+  }
+
+  async function openScanner() {
+    const modal = $('#scanModal');
+    stopScanner(true);
+    state.scan.manual = false;
+    $('#scanManualIsbn').value = '';
+    const placeholderText = $('#scanPlaceholder span');
+    placeholderText.textContent = '正在准备摄像头…';
+    $('#scanFallbackBtn').hidden = false;
+    setScanStatus('正在请求摄像头权限…');
+    openModal(modal);
+    if (window.matchMedia('(min-width: 900px)').matches) {
+      setTimeout(() => $('#scanManualIsbn').focus(), 200);
+    }
+
+    if (!('BarcodeDetector' in window)) {
+      placeholderText.textContent = '当前浏览器不支持自动识码';
+      useManualFallback('浏览器不支持自动识码，请在下方手动输入 ISBN。');
+      return;
+    }
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+      placeholderText.textContent = '无法访问摄像头';
+      useManualFallback('无法调用摄像头，请手动输入 ISBN。');
+      return;
+    }
+
+    let formats = ['ean_13', 'ean_8', 'code_128', 'upc_a'];
+    try {
+      if (typeof window.BarcodeDetector.getSupportedFormats === 'function') {
+        const supported = await window.BarcodeDetector.getSupportedFormats();
+        formats = formats.filter((format) => supported.includes(format));
+      }
+      if (!formats.length) throw new Error('no supported formats');
+      state.scan.detector = new window.BarcodeDetector({ formats });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 960 } }
+      });
+      if (!modal.classList.contains('open') || state.scan.manual) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      state.scan.stream = stream;
+      const video = $('#scanVideo');
+      video.srcObject = stream;
+      await video.play();
+      video.classList.add('active');
+      $('#scanPlaceholder').hidden = true;
+      setScanStatus('将书背面的 ISBN 条码放入框内');
+      state.scan.timer = setInterval(detectBarcodeFrame, 300);
+    } catch (error) {
+      stopScanner(false);
+      if (modal.classList.contains('open')) {
+        placeholderText.textContent = '摄像头不可用';
+        useManualFallback('无法使用摄像头（权限或浏览器限制），请手动输入 ISBN。');
+      }
+    }
+  }
+
+  async function detectBarcodeFrame() {
+    if (state.scan.busy || state.scan.detected || !state.scan.detector || !state.scan.stream) return;
+    const video = $('#scanVideo');
+    if (!video || video.readyState < 2 || !video.videoWidth) return;
+    state.scan.busy = true;
+    try {
+      const codes = await state.scan.detector.detect(video);
+      for (const code of codes) {
+        const digits = cleanIsbn(code.rawValue || '');
+        if (digits.length === 13 || digits.length === 10) {
+          if (isbnIsValid(digits)) {
+            handleScanSuccess(normalizeIsbn(digits));
+            return;
+          }
+          setScanStatus('识别到条码，但校验未通过。请重试或手动输入。', 'error');
+        }
+      }
+    } catch (error) {
+      // Frames can fail while the camera is warming up; keep scanning.
+    } finally {
+      state.scan.busy = false;
+    }
+  }
+
+  function handleScanSuccess(isbn) {
+    state.scan.detected = true;
+    stopScanner(false);
+    setScanStatus(`已识别：${isbn}`, 'success');
+    setTimeout(() => {
+      if (!state.scan.detected) return;
+      state.scan.detected = false;
+      closeModal($('#scanModal'));
+      applyScannedIsbn(isbn);
+    }, 460);
+  }
+
+  function applyScannedIsbn(isbn) {
+    if (!$('#bookModal').classList.contains('open')) openBookModal();
+    $('#bookIsbn').value = isbn;
+    $('#bookIsbn').classList.remove('invalid');
+    lookupForEditor(isbn);
+    toast('已识别 ISBN，正在补全书目信息。', 'success', 2200);
+  }
+
+  function useManualScanIsbn() {
+    const input = $('#scanManualIsbn');
+    const cleaned = cleanIsbn(input.value);
+    if (!isbnIsValid(cleaned)) {
+      setScanStatus('请输入完整、有效的 10 位或 13 位 ISBN。', 'error');
+      input.focus();
+      return;
+    }
+    const isbn = normalizeIsbn(cleaned);
+    state.scan.detected = false;
+    closeModal($('#scanModal'));
+    applyScannedIsbn(isbn);
+  }
+
+  /* ---------------- Import / export ---------------- */
+  function parseBackup(data) {
+    if (!data || typeof data !== 'object' || !Array.isArray(data.books)) {
+      throw new Error('文件不是有效的拾页书库备份（缺少 books 数组）。');
+    }
+    const rawBooks = data.books;
+    const rawLocations = Array.isArray(data.locations) ? data.locations : [];
+    const locations = rawLocations.map(sanitizeLocation).filter(Boolean);
+    const books = rawBooks.map(sanitizeBook).filter(Boolean);
+    if (!books.length && rawBooks.length) throw new Error('备份中的图书记录缺少有效书名，无法导入。');
+    const covers = {};
+    if (data.covers && typeof data.covers === 'object' && !Array.isArray(data.covers)) {
+      Object.entries(data.covers).forEach(([key, value]) => {
+        if (typeof value === 'string' && /^data:image\//i.test(value)) covers[key] = value;
+      });
+    }
+    return {
+      books,
+      locations,
+      covers,
+      ignoredBooks: Math.max(0, rawBooks.length - books.length),
+      ignoredLocations: Math.max(0, rawLocations.length - locations.length),
+      exportedAt: data.exportedAt || ''
+    };
+  }
+
+  async function handleImportFile(file) {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch (error) {
+        throw new Error('JSON 解析失败，请确认文件没有损坏。');
+      }
+      const backup = parseBackup(parsed);
+      state.pendingImport = backup;
+      $('#importPreview').innerHTML = `
+        <div class="import-metric"><strong>${backup.books.length}</strong><span>本图书</span></div>
+        <div class="import-metric"><strong>${backup.locations.length}</strong><span>个位置</span></div>
+        <div class="import-metric"><strong>${Object.keys(backup.covers).length}</strong><span>张封面</span></div>`;
+      const mergeRadio = document.querySelector('input[name="importMode"][value="merge"]');
+      if (mergeRadio) mergeRadio.checked = true;
+      $('#importWarning').hidden = true;
+      $('#importProgress').hidden = true;
+      $('#importProgressText').textContent = '正在恢复…';
+      $('#importConfirmBtn').disabled = false;
+      $('#importConfirmBtn').textContent = '开始导入';
+      openModal($('#importModal'));
+      if (backup.ignoredBooks || backup.ignoredLocations) {
+        toast(`已忽略 ${backup.ignoredBooks} 条无效图书、${backup.ignoredLocations} 条无效位置。`, 'info', 3800);
+      }
+    } catch (error) {
+      toast(error.message || '导入文件校验失败。', 'error', 5000);
+    } finally {
+      $('#importFile').value = '';
+    }
+  }
+
+  function buildLocationSet(incoming, existing) {
+    const locations = existing.map((loc) => ({ ...loc }));
+    const used = new Set(locations.map((loc) => loc.id));
+    const idMap = new Map();
+    const findByName = (name, parentId) => locations.find((loc) =>
+      (loc.parentId || null) === (parentId || null) && normalizeText(loc.name) === normalizeText(name)
+    );
+    const addLocation = (raw, parentId) => {
+      const match = findByName(raw.name, parentId);
+      if (match) {
+        idMap.set(raw.id, match.id);
+        return match;
+      }
+      let id = raw.id && !used.has(raw.id) ? raw.id : uid('loc');
+      while (used.has(id)) id = uid('loc');
+      const loc = {
+        id,
+        name: raw.name,
+        parentId: parentId || null,
+        sort: Number(raw.sort) || (locations.filter((item) => (item.parentId || null) === (parentId || null)).length + 1)
+      };
+      locations.push(loc);
+      used.add(id);
+      idMap.set(raw.id, id);
+      return loc;
+    };
+
+    const incomingIds = new Set(incoming.map((loc) => loc.id));
+    const children = incoming.filter((loc) => loc.parentId && incomingIds.has(loc.parentId));
+    const tops = incoming.filter((loc) => !children.includes(loc));
+    tops.forEach((raw) => addLocation(raw, null));
+    children.forEach((raw) => {
+      const parentId = idMap.get(raw.parentId);
+      const parent = parentId ? locations.find((loc) => loc.id === parentId) : null;
+      if (!parent || parent.parentId) addLocation(raw, null);
+      else addLocation(raw, parentId);
+    });
+    return { locations, idMap };
+  }
+
+  async function buildImportedBooks(incoming, locationSet, covers, existingBooks) {
+    const books = existingBooks.map((book) => ({ ...book }));
+    const usedIds = new Set(books.map((book) => book.id));
+    const usedIsbns = new Set(books.map((book) => book.isbn).filter(Boolean));
+    const newCoverIds = [];
+    let added = 0;
+    let skipped = 0;
+    let coversLoaded = 0;
+    let coverFailures = 0;
+
+    for (const raw of incoming) {
+      const isbn = normalizeIsbn(raw.isbn || '');
+      if (usedIds.has(raw.id) || (isbn && usedIsbns.has(isbn))) {
+        skipped++;
+        continue;
+      }
+      let coverId = null;
+      if (raw.coverId && covers[raw.coverId]) {
+        try {
+          const blob = dataUrlToBlob(covers[raw.coverId]);
+          const newCoverId = uid('cover');
+          await coverPut({
+            id: newCoverId,
+            blob,
+            type: blob.type || 'image/jpeg',
+            size: blob.size || 0,
+            createdAt: Date.now()
+          });
+          newCoverIds.push(newCoverId);
+          coverId = newCoverId;
+          coversLoaded++;
+        } catch (error) {
+          coverFailures++;
+        }
+      }
+      let id = raw.id;
+      while (!id || usedIds.has(id)) id = uid('book');
+      const locationId = raw.locationId ? (locationSet.idMap.get(raw.locationId) || '') : '';
+      const book = {
+        id,
+        isbn,
+        title: raw.title,
+        author: raw.author,
+        publisher: raw.publisher,
+        locationId,
+        coverId,
+        note: raw.note,
+        createdAt: Number(raw.createdAt) || Date.now(),
+        updatedAt: Number(raw.updatedAt) || Date.now()
+      };
+      books.push(book);
+      usedIds.add(id);
+      if (isbn) usedIsbns.add(isbn);
+      added++;
+    }
+    return { books, newCoverIds, added, skipped, coversLoaded, coverFailures };
+  }
+
+  async function applyImport(mode) {
+    const backup = state.pendingImport;
+    if (!backup) return;
+    const importBtn = $('#importConfirmBtn');
+    state.importBusy = true;
+    importBtn.disabled = true;
+    importBtn.textContent = '正在导入…';
+    $('#importProgress').hidden = false;
+    $('#importProgressText').textContent = '正在恢复位置与图书…';
+    const snapshotBooks = state.books.map((book) => ({ ...book }));
+    const snapshotLocations = state.locations.map((loc) => ({ ...loc }));
+    const snapshotMeta = { ...state.meta };
+    let result = null;
+    try {
+      const locationSet = buildLocationSet(backup.locations, mode === 'merge' ? state.locations : []);
+      if (Object.keys(backup.covers).length) {
+        $('#importProgressText').textContent = '正在恢复封面图片…';
+      }
+      result = await buildImportedBooks(
+        backup.books,
+        locationSet,
+        backup.covers,
+        mode === 'merge' ? state.books : []
+      );
+      state.locations = locationSet.locations;
+      state.books = result.books;
+      state.meta.lastImportedAt = Date.now();
+      const saved = persistData();
+      if (!saved) throw new Error('写入本地存储失败，当前数据已回滚。');
+      saveMeta();
+
+      if (mode === 'overwrite') {
+        const referenced = new Set(state.books.map((book) => book.coverId).filter(Boolean));
+        const allCovers = await coverAll();
+        for (const record of allCovers) {
+          if (!referenced.has(record.id)) await coverDelete(record.id);
+        }
+      }
+      state.coverUrls.forEach((url) => URL.revokeObjectURL(url));
+      state.coverUrls.clear();
+      state.pendingImport = null;
+      closeModal($('#importModal'));
+      refreshUI();
+      const summary = `导入完成：新增 ${result.added} 本图书${result.skipped ? `，跳过 ${result.skipped} 本重复记录` : ''}${result.coversLoaded ? `，恢复 ${result.coversLoaded} 张封面` : ''}。`;
+      toast(summary, 'success', 5200);
+      if (result.coverFailures) {
+        toast(`${result.coverFailures} 张封面无法读取，已跳过，不影响图书记录。`, 'info', 5000);
+      }
+    } catch (error) {
+      state.books = snapshotBooks;
+      state.locations = snapshotLocations;
+      state.meta = snapshotMeta;
+      if (result && result.newCoverIds) {
+        for (const coverId of result.newCoverIds) await coverDelete(coverId);
+      }
+      $('#importProgress').hidden = true;
+      toast(error.message || '导入失败，原有数据未改变。', 'error', 5200);
+    } finally {
+      state.importBusy = false;
+      importBtn.disabled = false;
+      importBtn.textContent = '开始导入';
+    }
+  }
+
+  async function exportBackup(button) {
+    if (button.disabled) return;
+    button.disabled = true;
+    const original = button.innerHTML;
+    button.innerHTML = '<span class="spinner"></span>正在整理备份…';
+    try {
+      const referenced = new Set(state.books.map((book) => book.coverId).filter(Boolean));
+      const covers = {};
+      for (const coverId of referenced) {
+        const record = await coverGet(coverId);
+        if (record && record.blob) {
+          covers[coverId] = await blobToDataUrl(record.blob);
+        }
+      }
+      const payload = {
+        app: '拾页 · 家庭图书管理工作台',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        books: state.books,
+        locations: state.locations,
+        covers
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `家庭书库备份_${todayStamp()}.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1200);
+      state.meta.lastBackupAt = Date.now();
+      saveMeta();
+      scheduleStorageRefresh();
+      toast(`备份已导出，包含 ${state.books.length} 本图书与 ${Object.keys(covers).length} 张封面。`, 'success', 4200);
+    } catch (error) {
+      toast('导出失败，请稍后重试。', 'error');
+    } finally {
+      button.disabled = false;
+      button.innerHTML = original;
+    }
+  }
+
+  async function clearAllData() {
+    const ok = await confirmDialog({
+      title: '清空整个书库？',
+      message: '全部图书、位置和封面都会从本浏览器删除，无法撤销。建议先导出备份。',
+      confirmText: '确认清空',
+      tone: 'danger'
+    });
+    if (!ok) return;
+    const snapshotBooks = state.books.map((book) => ({ ...book }));
+    const snapshotLocations = state.locations.map((loc) => ({ ...loc }));
+    state.books = [];
+    state.locations = [];
+    if (!persistData()) {
+      state.books = snapshotBooks;
+      state.locations = snapshotLocations;
+      return;
+    }
+    await coverClear();
+    state.coverUrls.forEach((url) => URL.revokeObjectURL(url));
+    state.coverUrls.clear();
+    state.query = '';
+    state.locationFilter = 'all';
+    $('#searchInput').value = '';
+    refreshUI();
+    toast('本地书库已清空。', 'success');
+  }
+
+  /* ---------------- Sample books ---------------- */
+  async function loadSampleBooks() {
+    if (!state.locations.length) {
+      state.locations = defaultLocations();
+      persistData();
+    }
+    const leaves = sortedLocations().filter((loc) => loc.parentId);
+    const targets = leaves.length ? leaves : sortedLocations();
+    if (!targets.length) {
+      toast('请先创建至少一个存放位置。', 'error');
+      return;
+    }
+    const samples = [
+      { isbn: '9787536692930', title: '三体', author: '刘慈欣', publisher: '重庆出版社', note: '第一部读了三遍，借给表弟未还。' },
+      { isbn: '9787506365437', title: '活着', author: '余华', publisher: '作家出版社', note: '书脊有轻微磨损。' },
+      { isbn: '9787544253994', title: '百年孤独', author: '加西亚·马尔克斯', publisher: '南海出版公司', note: '' },
+      { isbn: '9787020042494', title: '小王子', author: '圣埃克苏佩里', publisher: '人民文学出版社', note: '扉页有孩子画的狐狸。' },
+      { isbn: '9787508647357', title: '人类简史', author: '尤瓦尔·赫拉利', publisher: '中信出版社', note: '' },
+      { isbn: '9787020024759', title: '围城', author: '钱钟书', publisher: '人民文学出版社', note: '父亲的书，1991 年购于旧书店。' },
+      { isbn: '9787544250580', title: '窗边的小豆豆', author: '黑柳彻子', publisher: '南海出版公司', note: '' },
+      { isbn: '9787108009821', title: '万历十五年', author: '黄仁宇', publisher: '生活·读书·新知三联书店', note: '' }
+    ];
+    let added = 0;
+    const addedIds = [];
+    const now = Date.now();
+    samples.forEach((sample, index) => {
+      if (findDuplicateIsbn(sample.isbn, null)) return;
+      const target = targets[index % targets.length];
+      const newId = uid('book');
+      addedIds.push(newId);
+      state.books.unshift({
+        id: newId,
+        isbn: sample.isbn,
+        title: sample.title,
+        author: sample.author,
+        publisher: sample.publisher,
+        locationId: target.id,
+        coverId: null,
+        note: sample.note,
+        createdAt: now - index * 86400000,
+        updatedAt: now - index * 86400000
+      });
+      added++;
+    });
+    if (!added) {
+      toast('示例图书已经都在书库里了。', 'info');
+      return;
+    }
+    if (!persistData()) {
+      const addedSet = new Set(addedIds);
+      state.books = state.books.filter((book) => !addedSet.has(book.id));
+      refreshUI();
+      return;
+    }
+    refreshUI();
+    toast(`已载入 ${added} 本示例藏书，可自由编辑或删除。`, 'success', 3800);
+  }
+
+  /* ---------------- Event handlers ---------------- */
+  function resetFilters() {
+    state.query = '';
+    state.locationFilter = 'all';
+    $('#searchInput').value = '';
+    $('#locationFilter').value = 'all';
+    refreshLocationFilter();
+    renderLibrary();
+  }
+
+  function clearSearch() {
+    state.query = '';
+    $('#searchInput').value = '';
+    renderLibrary();
+    $('#searchInput').focus();
+  }
+
+  function handleAction(action, element) {
+    switch (action) {
+      case 'nav':
+        switchView(element.dataset.view);
+        break;
+      case 'add-book':
+        openBookModal();
+        break;
+      case 'open-book':
+        openDetail(element.dataset.id);
+        break;
+      case 'edit-book':
+        openBookModal(element.dataset.id);
+        break;
+      case 'delete-book':
+        deleteBook(element.dataset.id);
+        break;
+      case 'add-location':
+        openLocationModal({ parentId: element.dataset.parent || null });
+        break;
+      case 'edit-location':
+        openLocationModal({ id: element.dataset.id });
+        break;
+      case 'delete-location':
+        requestDeleteLocation(element.dataset.id);
+        break;
+      case 'clear-search':
+        clearSearch();
+        break;
+      case 'reset-filters':
+        resetFilters();
+        break;
+      case 'remove-cover':
+        removePendingCover();
+        break;
+      case 'load-sample':
+        loadSampleBooks();
+        break;
+      case 'clear-data':
+        clearAllData();
+        break;
+      default:
+        break;
+    }
+  }
+
+  function bindEvents() {
+    document.addEventListener('click', (event) => {
+      const closeTarget = event.target.closest('[data-close]');
+      if (closeTarget) {
+        const modal = document.getElementById(closeTarget.dataset.close);
+        if (modal) closeModal(modal);
+        return;
+      }
+      const actionElement = event.target.closest('[data-action]');
+      if (actionElement) handleAction(actionElement.dataset.action, actionElement);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        const open = $$('.modal.open');
+        if (open.length) {
+          event.preventDefault();
+          if ($('#importModal').classList.contains('open') && state.importBusy) return;
+          closeTopModal();
+        }
+        return;
+      }
+      const target = event.target;
+      const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
+      if ((event.key === '/' && !isTyping) || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k')) {
+        event.preventDefault();
+        switchView('library');
+        $('#searchInput').focus();
+        return;
+      }
+      if ((event.key === 'Enter' || event.key === ' ') && target && target.classList && target.classList.contains('book-card')) {
+        event.preventDefault();
+        openDetail(target.dataset.id);
+      }
+    });
+
+    let searchTimer = null;
+    $('#searchInput').addEventListener('input', (event) => {
+      state.query = event.target.value;
+      $('#clearSearchBtn').hidden = !state.query.trim();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(renderLibrary, 110);
+    });
+
+    $('#locationFilter').addEventListener('change', (event) => {
+      state.locationFilter = event.target.value || 'all';
+      renderLibrary();
+    });
+
+    $('#sortSelect').addEventListener('change', (event) => {
+      state.sort = event.target.value;
+      renderLibrary();
+    });
+
+    $('#bookForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      saveBook();
+    });
+
+    $('#locationForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      saveLocation();
+    });
+
+    $('#cameraBtn').addEventListener('click', () => $('#cameraInput').click());
+    $('#albumBtn').addEventListener('click', () => $('#albumInput').click());
+    $('#cameraInput').addEventListener('change', (event) => handleCoverFile(event.target.files[0]));
+    $('#albumInput').addEventListener('change', (event) => handleCoverFile(event.target.files[0]));
+    $('#inlineAddLocation').addEventListener('click', () => openLocationModal({ fromBook: true }));
+
+    $('#bookIsbn').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        lookupForEditor(event.target.value);
+      }
+    });
+    $('#bookIsbn').addEventListener('input', () => {
+      state.editor.lookupToken++;
+      if ($('#lookupHint').classList.contains('error')) {
+        setLookupHint('扫描条码，或输入 ISBN 后按回车联网补全书名、作者与出版社。');
+      }
+    });
+    $('#bookIsbn').addEventListener('blur', (event) => {
+      const cleaned = cleanIsbn(event.target.value);
+      if (!cleaned) return;
+      if (!isbnIsValid(cleaned)) return;
+      const normalized = normalizeIsbn(cleaned);
+      if (normalized !== state.editor.lastLookupIsbn) lookupForEditor(cleaned);
+    });
+
+    $('#scanBtn').addEventListener('click', openScanner);
+    $('#scanFallbackBtn').addEventListener('click', () => {
+      stopScanner(false);
+      const fallbackBtn = $('#scanFallbackBtn');
+      if (fallbackBtn) fallbackBtn.hidden = true;
+      const placeholderText = $('#scanPlaceholder span');
+      if (placeholderText) placeholderText.textContent = '已切换为手动输入';
+      setScanStatus('请输入 10 位或 13 位 ISBN，按回车即可查询书目。');
+      useManualFallback();
+    });
+    $('#scanManualBtn').addEventListener('click', useManualScanIsbn);
+    $('#scanManualIsbn').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        useManualScanIsbn();
+      }
+    });
+
+    $('#exportBtn').addEventListener('click', (event) => exportBackup(event.currentTarget));
+    $('#importBtn').addEventListener('click', () => $('#importFile').click());
+    $('#importFile').addEventListener('change', (event) => handleImportFile(event.target.files[0]));
+    document.querySelectorAll('input[name="importMode"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        $('#importWarning').hidden = !document.querySelector('input[name="importMode"][value="overwrite"]').checked;
+      });
+    });
+    $('#importConfirmBtn').addEventListener('click', async () => {
+      if (state.importBusy || !state.pendingImport) return;
+      const mode = document.querySelector('input[name="importMode"]:checked').value;
+      if (mode === 'overwrite') {
+        const ok = await confirmDialog({
+          title: '覆盖当前书库？',
+          message: `当前 ${state.books.length} 本图书与 ${state.locations.length} 个位置将被清空，然后导入备份。建议先导出当前数据。`,
+          confirmText: '覆盖并导入',
+          tone: 'danger'
+        });
+        if (!ok) return;
+      }
+      applyImport(mode);
+    });
+
+    $('#migrateConfirmBtn').addEventListener('click', confirmMigrate);
+
+    $('#confirmOkBtn').addEventListener('click', () => {
+      if (!state.confirmResolver) return;
+      const resolve = state.confirmResolver;
+      state.confirmResolver = null;
+      closeModal($('#confirmModal'));
+      resolve(true);
+    });
+    $('#confirmCancelBtn').addEventListener('click', () => {
+      if (!state.confirmResolver) return;
+      const resolve = state.confirmResolver;
+      state.confirmResolver = null;
+      closeModal($('#confirmModal'));
+      resolve(false);
+    });
+
+    window.addEventListener('beforeunload', () => {
+      state.coverUrls.forEach((url) => URL.revokeObjectURL(url));
+    });
+  }
+
+  function init() {
+    loadData();
+    refreshUI();
+    bindEvents();
+    $('#sortSelect').value = state.sort;
+    updateStorage();
+    if (navigator.onLine === false) {
+      setTimeout(() => toast('当前离线，书库与拍照仍可正常使用；ISBN 联网查询将不可用。', 'info', 4500), 600);
+    }
+  }
+
+  init();
+
+})();
+</script>
 </body>
 </html>
